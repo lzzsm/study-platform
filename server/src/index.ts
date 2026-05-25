@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import authRouter from "./routes/auth";
 import workspaceRouter from "./routes/workspaces";
+import taskRouter from "./routes/tasks";
+import goalRouter from "./routes/goals";
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "./errors/AppError";
 
@@ -16,6 +18,8 @@ app.use(cors());
 app.use(express.json());
 app.use("/auth", authRouter);
 app.use("/workspaces", workspaceRouter);
+app.use("/workspaces/:workspaceId/tasks", taskRouter);
+app.use("/workspaces/:workspaceId/goals", goalRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {

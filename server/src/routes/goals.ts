@@ -1,0 +1,115 @@
+import { Router, Request, Response, NextFunction } from "express";
+import { goalService } from "../services/goalService";
+import { authMiddleware } from "../middleware/auth";
+import { AppError } from "../errors/AppError";
+
+const router = Router({ mergeParams: true });
+router.use(authMiddleware);
+
+router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { title, description, type, target_value, expires_at } = req.body;
+    const workspace_id = Number(req.params.workspaceId);
+    const goal = await goalService.create(
+      title,
+      description,
+      type,
+      target_value,
+      expires_at,
+      workspace_id,
+    );
+    res.status(201).json(goal);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const workspace_id = Number(req.params.workspaceId);
+    const goals = await goalService.findAll(workspace_id);
+    res.status(200).json(goals);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const workspace_id = Number(req.params.workspaceId);
+    const goal = await goalService.findById(
+      Number(req.params.id),
+      workspace_id,
+    );
+    if (!goal) throw new AppError("Meta não encontrada.", 404);
+    res.status(200).json(goal);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { title, description, target_value, expires_at } = req.body;
+    const goal = await goalService.update(
+      Number(req.params.id),
+      title,
+      description,
+      target_value,
+      expires_at,
+    );
+    if (!goal) throw new AppError("Meta não encontrada.", 404);
+    res.status(200).json(goal);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch(
+  "/:id/progress",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { current_value } = req.body;
+      const goal = await goalService.updateProgress(
+        Number(req.params.id),
+        current_value,
+      );
+      if (!goal) throw new AppError("Meta não encontrada.", 404);
+      res.status(200).json(goal);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.patch(
+  "/:id/toggle",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { completed } = req.body;
+      const goal = await goalService.toggleCompleted(
+        Number(req.params.id),
+        completed,
+      );
+      if (!goal) throw new AppError("Meta não encontrada.", 404);
+      res.status(200).json(goal);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.delete(
+  "/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const goal = await goalService.remove(Number(req.params.id));
+      if (!goal) throw new AppError("Meta não encontrada.", 404);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+export default router;
