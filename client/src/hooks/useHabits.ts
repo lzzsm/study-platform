@@ -94,3 +94,29 @@ export function useUpdateHabit(workspaceId: number) {
     },
   });
 }
+
+export function useCompleteHabitFromDashboard() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      habitId,
+      workspaceId,
+    }: {
+      habitId: number;
+      workspaceId: number;
+    }) => habitService.complete(workspaceId, habitId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      if (data?.alreadyCompleted) {
+        toast.info("Hábito já completado hoje.");
+      } else {
+        toast.success("Hábito completado! 🔥");
+      }
+    },
+    onError: () => {
+      toast.error("Erro ao completar hábito.");
+    },
+  });
+}

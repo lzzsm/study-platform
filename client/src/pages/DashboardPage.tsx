@@ -1,17 +1,31 @@
 import { useMe } from "@/hooks/useMe";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { useCompleteHabitFromDashboard } from "@/hooks/useHabits";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Plus } from "lucide-react";
+import {
+  BookOpen,
+  Plus,
+  CheckCircle,
+  Clock,
+  Flame,
+  Target,
+} from "lucide-react";
 import type { Workspace } from "@/types/workspace.types";
+import type { Habit } from "@/types/habit.types";
+import type { Goal } from "@/types/goal.types";
 
 function DashboardPage() {
   const navigate = useNavigate();
   const { data: user, isLoading: loadingUser } = useMe();
   const { data: workspaces, isLoading: loadingWorkspaces } = useWorkspaces();
+  const { data: analytics, isLoading: loadingAnalytics } = useAnalytics();
+  const completeHabit = useCompleteHabitFromDashboard();
 
-  if (loadingUser || loadingWorkspaces) return <p>Carregando...</p>;
+  if (loadingUser || loadingWorkspaces || loadingAnalytics)
+    return <p>Carregando...</p>;
 
   return (
     <div className="space-y-8">
@@ -26,6 +40,122 @@ function DashboardPage() {
         </p>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Clock className="size-4" />
+              Tarefas pendentes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{analytics?.tasks.pending}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <CheckCircle className="size-4" />
+              Tarefas completas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{analytics?.tasks.completed}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Flame className="size-4" />
+              Melhor streak
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{analytics?.bestStreak} dias</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Target className="size-4" />
+              Hábitos pendentes hoje
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">
+              {analytics?.habits.pending.length}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Hábitos pendentes hoje */}
+      {analytics?.habits.pending.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-xl font-semibold">Hábitos para hoje</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {analytics.habits.pending.map((habit: Habit) => (
+              <Card
+                key={habit.id}
+                className="flex items-center justify-between p-4"
+              >
+                <div>
+                  <p className="text-sm font-medium">{habit.title}</p>
+                  <div className="flex items-center gap-1 text-orange-500 mt-1">
+                    <Flame className="size-3" />
+                    <span className="text-xs">{habit.streak} dias</span>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    completeHabit.mutate({
+                      habitId: habit.id,
+                      workspaceId: habit.workspace_id,
+                    })
+                  }
+                  disabled={completeHabit.isPending}
+                >
+                  <CheckCircle className="size-4" />
+                </Button>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Top metas */}
+      {analytics?.goals.top5.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-xl font-semibold">Progresso das metas</h2>
+          <div className="space-y-3">
+            {analytics.goals.top5.map(
+              (goal: Goal & { progress_pct: number }) => (
+                <div key={goal.id} className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">{goal.title}</p>
+                    <span className="text-sm text-muted-foreground">
+                      {goal.progress_pct}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all"
+                      style={{ width: `${goal.progress_pct}%` }}
+                    />
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Workspaces */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Seus workspaces</h2>
