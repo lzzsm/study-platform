@@ -32,6 +32,9 @@ Plataforma de gerenciamento de estudos e produtividade com suporte a múltiplos 
 - Autenticação com JWT
 - Múltiplos workspaces por usuário
 - CRUD de workspaces com soft delete
+- Tarefas com toggle de conclusão
+- Metas quantitativas e qualitativas com tracking de progresso
+- Hábitos com streak de dias consecutivos
 - Dashboard com visão geral
 - Troca de tema claro/escuro
 
@@ -61,11 +64,14 @@ Veja `server/.env.example` para as variáveis necessárias.
 
 ### Roadmap
 
-- [ ] Tarefas por workspace
-- [ ] Metas com progresso
-- [ ] Tracking de hábitos
+- [x] Autenticação
+- [x] Workspaces
+- [x] Tarefas
+- [x] Metas com progresso
+- [x] Tracking de hábitos
+- [ ] Dashboard analytics com gráficos
+- [ ] Filtros e paginação
 - [ ] Sessões pomodoro
-- [ ] Dashboard analytics
 - [ ] Notificações
 - [ ] Integração com IA
 
@@ -99,6 +105,9 @@ Productivity and study management platform with support for multiple workspaces,
 - JWT authentication
 - Multiple workspaces per user
 - Workspace CRUD with soft delete
+- Tasks with completion toggle
+- Quantitative and qualitative goals with progress tracking
+- Habits with consecutive day streak tracking
 - Overview dashboard
 - Light/dark theme toggle
 
@@ -128,10 +137,13 @@ See `server/.env.example` for the required variables.
 
 ### Roadmap
 
-- [ ] Tasks per workspace
-- [ ] Goals with progress tracking
-- [ ] Habit tracking
+- [x] Authentication
+- [x] Workspaces
+- [x] Tasks
+- [x] Goals with progress tracking
+- [x] Habit tracking
+- [ ] Analytics dashboard with charts
+- [ ] Filters and pagination
 - [ ] Pomodoro sessions
-- [ ] Analytics dashboard
 - [ ] Notifications
 - [ ] AI integration

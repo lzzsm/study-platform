@@ -71,7 +71,15 @@ async function migrate() {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       deleted_at TIMESTAMP
-    )
+    );
+
+    CREATE TABLE IF NOT EXISTS habit_logs (
+      id SERIAL PRIMARY KEY,
+      habit_id INTEGER REFERENCES habits(id) ON DELETE CASCADE,
+      completed_at DATE NOT NULL DEFAULT CURRENT_DATE,
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(habit_id, completed_at)
+    );
   `);
 
   console.log("Migrations concluídas.");

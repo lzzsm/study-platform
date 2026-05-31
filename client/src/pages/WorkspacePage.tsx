@@ -7,11 +7,16 @@ import {
   useToggleTask,
   useDeleteTask,
 } from "@/hooks/useTasks";
+import { useGoals } from "@/hooks/useGoals";
+import { useHabits, useCreateHabit } from "@/hooks/useHabits";
 import { BookOpen, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EditTaskDialog } from "@/components/EditTaskDialog";
+import { GoalCard } from "@/components/GoalCard";
+import { CreateGoalDialog } from "@/components/CreateGoalDialog";
+import { HabitCard } from "@/components/HabitCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,10 +29,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Task } from "@/types/task.types";
-import { useGoals } from "@/hooks/useGoals";
-import { GoalCard } from "@/components/GoalCard";
-import { CreateGoalDialog } from "@/components/CreateGoalDialog";
 import type { Goal } from "@/types/goal.types";
+import type { Habit } from "@/types/habit.types";
 
 function WorkspacePage() {
   const { id } = useParams();
@@ -37,21 +40,39 @@ function WorkspacePage() {
     useWorkspace(workspaceId);
   const { data: tasks, isLoading: loadingTasks } = useTasks(workspaceId);
   const { data: goals, isLoading: loadingGoals } = useGoals(workspaceId);
+  const { data: habits, isLoading: loadingHabits } = useHabits(workspaceId);
+
   const createTask = useCreateTask(workspaceId);
   const toggleTask = useToggleTask(workspaceId);
   const deleteTask = useDeleteTask(workspaceId);
+  const createHabit = useCreateHabit(workspaceId);
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [habitTitle, setHabitTitle] = useState("");
+  const [habitDescription, setHabitDescription] = useState("");
 
-  function handleCreate() {
-    if (!title.trim()) return;
+  function handleCreateTask() {
+    if (!taskTitle.trim()) return;
     createTask.mutate(
-      { title, description: description || undefined },
+      { title: taskTitle, description: taskDescription || undefined },
       {
         onSuccess: () => {
-          setTitle("");
-          setDescription("");
+          setTaskTitle("");
+          setTaskDescription("");
+        },
+      },
+    );
+  }
+
+  function handleCreateHabit() {
+    if (!habitTitle.trim()) return;
+    createHabit.mutate(
+      { title: habitTitle, description: habitDescription || undefined },
+      {
+        onSuccess: () => {
+          setHabitTitle("");
+          setHabitDescription("");
         },
       },
     );
@@ -74,23 +95,23 @@ function WorkspacePage() {
         </div>
       </div>
 
+      {/* Tarefas */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Tarefas</h2>
-
         <div className="space-y-2">
           <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={taskTitle}
+            onChange={(e) => setTaskTitle(e.target.value)}
             placeholder="Nova tarefa..."
-            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+            onKeyDown={(e) => e.key === "Enter" && handleCreateTask()}
           />
           <Input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={taskDescription}
+            onChange={(e) => setTaskDescription(e.target.value)}
             placeholder="Descrição (opcional)"
           />
           <Button
-            onClick={handleCreate}
+            onClick={handleCreateTask}
             disabled={createTask.isPending}
             size="sm"
           >
@@ -154,7 +175,6 @@ function WorkspacePage() {
                 </div>
               </div>
             ))}
-
             {tasks?.length === 0 && (
               <p className="text-muted-foreground text-sm">
                 Nenhuma tarefa ainda.
@@ -163,12 +183,13 @@ function WorkspacePage() {
           </div>
         )}
       </div>
+
+      {/* Metas */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Metas</h2>
           <CreateGoalDialog workspaceId={workspaceId} />
         </div>
-
         {loadingGoals ? (
           <p className="text-muted-foreground text-sm">Carregando metas...</p>
         ) : (
@@ -179,6 +200,51 @@ function WorkspacePage() {
             {goals?.length === 0 && (
               <p className="text-muted-foreground text-sm">
                 Nenhuma meta ainda.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Hábitos */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Hábitos</h2>
+        <div className="space-y-2">
+          <Input
+            value={habitTitle}
+            onChange={(e) => setHabitTitle(e.target.value)}
+            placeholder="Novo hábito..."
+            onKeyDown={(e) => e.key === "Enter" && handleCreateHabit()}
+          />
+          <Input
+            value={habitDescription}
+            onChange={(e) => setHabitDescription(e.target.value)}
+            placeholder="Descrição (opcional)"
+          />
+          <Button
+            onClick={handleCreateHabit}
+            disabled={createHabit.isPending}
+            size="sm"
+          >
+            <Plus className="size-4 mr-1" />
+            {createHabit.isPending ? "Criando..." : "Criar hábito"}
+          </Button>
+        </div>
+
+        {loadingHabits ? (
+          <p className="text-muted-foreground text-sm">Carregando hábitos...</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {habits?.map((habit: Habit) => (
+              <HabitCard
+                key={habit.id}
+                habit={habit}
+                workspaceId={workspaceId}
+              />
+            ))}
+            {habits?.length === 0 && (
+              <p className="text-muted-foreground text-sm">
+                Nenhum hábito ainda.
               </p>
             )}
           </div>
