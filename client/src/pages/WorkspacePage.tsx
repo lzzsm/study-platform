@@ -36,9 +36,18 @@ function WorkspacePage() {
   const { id } = useParams();
   const workspaceId = Number(id);
 
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState<"pending" | "completed" | undefined>(
+    undefined,
+  );
+
   const { data: workspace, isLoading: loadingWorkspace } =
     useWorkspace(workspaceId);
-  const { data: tasks, isLoading: loadingTasks } = useTasks(workspaceId);
+  const { data: taskData, isLoading: loadingTasks } = useTasks(
+    workspaceId,
+    page,
+    status,
+  );
   const { data: goals, isLoading: loadingGoals } = useGoals(workspaceId);
   const { data: habits, isLoading: loadingHabits } = useHabits(workspaceId);
 
@@ -52,6 +61,9 @@ function WorkspacePage() {
   const [habitTitle, setHabitTitle] = useState("");
   const [habitDescription, setHabitDescription] = useState("");
 
+  const tasks = taskData?.tasks ?? [];
+  const totalPages = Math.ceil((taskData?.total ?? 0) / 10);
+
   function handleCreateTask() {
     if (!taskTitle.trim()) return;
     createTask.mutate(
@@ -60,6 +72,7 @@ function WorkspacePage() {
         onSuccess: () => {
           setTaskTitle("");
           setTaskDescription("");
+          setPage(1);
         },
       },
     );
@@ -98,6 +111,7 @@ function WorkspacePage() {
       {/* Tarefas */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Tarefas</h2>
+
         <div className="space-y-2">
           <Input
             value={taskTitle}
@@ -120,11 +134,45 @@ function WorkspacePage() {
           </Button>
         </div>
 
+        {/* Filtros */}
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant={status === undefined ? "default" : "outline"}
+            onClick={() => {
+              setStatus(undefined);
+              setPage(1);
+            }}
+          >
+            Todas
+          </Button>
+          <Button
+            size="sm"
+            variant={status === "pending" ? "default" : "outline"}
+            onClick={() => {
+              setStatus("pending");
+              setPage(1);
+            }}
+          >
+            Pendentes
+          </Button>
+          <Button
+            size="sm"
+            variant={status === "completed" ? "default" : "outline"}
+            onClick={() => {
+              setStatus("completed");
+              setPage(1);
+            }}
+          >
+            Completas
+          </Button>
+        </div>
+
         {loadingTasks ? (
           <p className="text-muted-foreground text-sm">Carregando tarefas...</p>
         ) : (
           <div className="space-y-2">
-            {tasks?.map((task: Task) => (
+            {tasks.map((task: Task) => (
               <div
                 key={task.id}
                 className="flex items-center gap-3 p-3 border rounded-lg"
@@ -175,10 +223,36 @@ function WorkspacePage() {
                 </div>
               </div>
             ))}
-            {tasks?.length === 0 && (
+
+            {tasks.length === 0 && (
               <p className="text-muted-foreground text-sm">
                 Nenhuma tarefa ainda.
               </p>
+            )}
+
+            {/* Paginação */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setPage((p) => p - 1)}
+                  disabled={page === 1}
+                >
+                  Anterior
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Página {page} de {totalPages}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={page === totalPages}
+                >
+                  Próxima
+                </Button>
+              </div>
             )}
           </div>
         )}

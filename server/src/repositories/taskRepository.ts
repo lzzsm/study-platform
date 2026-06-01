@@ -12,12 +12,38 @@ async function findById(
   return result.rows[0] || null;
 }
 
-async function findAll(workspace_id: number): Promise<Task[]> {
-  const result = await pool.query(
-    "SELECT * FROM tasks WHERE workspace_id = $1 AND deleted_at IS NULL",
-    [workspace_id],
+async function findAll(
+  workspace_id: number,
+  page: number = 1,
+  limit: number = 10,
+  status?: "pending" | "completed",
+): Promise<{ tasks: Task[]; total: number }> {
+  const offset = (page - 1) * limit;
+  const conditions = ["workspace_id = $1", "deleted_at IS NULL"];
+  const params: unknown[] = [workspace_id];
+
+  if (status === "pending") {
+    conditions.push(`completed = false`);
+  } else if (status === "completed") {
+    conditions.push(`completed = true`);
+  }
+
+  const where = `WHERE ${conditions.join(" AND ")}`;
+
+  const countResult = await pool.query(
+    `SELECT COUNT(*) as total FROM tasks ${where}`,
+    params,
   );
-  return result.rows;
+
+  const tasksResult = await pool.query(
+    `SELECT * FROM tasks ${where} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+    [...params, limit, offset],
+  );
+
+  return {
+    tasks: tasksResult.rows,
+    total: Number(countResult.rows[0].total),
+  };
 }
 
 async function create(

@@ -2,10 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "@/services/task.service";
 import { toast } from "sonner";
 
-export function useTasks(workspaceId: number) {
+export function useTasks(
+  workspaceId: number,
+  page = 1,
+  status?: "pending" | "completed",
+) {
   return useQuery({
-    queryKey: ["workspaces", workspaceId, "tasks"],
-    queryFn: () => taskService.getAll(workspaceId),
+    queryKey: ["workspaces", workspaceId, "tasks", page, status],
+    queryFn: () => taskService.getAll(workspaceId, page, 10, status),
   });
 }
 

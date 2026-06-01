@@ -26,8 +26,13 @@ async function remove(id: number) {
   return taskRepository.remove(id);
 }
 
-async function findAll(workspace_id: number) {
-  return taskRepository.findAll(workspace_id);
+async function findAll(
+  workspace_id: number,
+  page: number = 1,
+  limit: number = 10,
+  status?: "pending" | "completed",
+) {
+  return taskRepository.findAll(workspace_id, page, limit, status);
 }
 
 async function findById(id: number, workspace_id: number) {

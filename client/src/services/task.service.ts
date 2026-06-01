@@ -1,8 +1,15 @@
 import api from "./api";
 
 export const taskService = {
-  getAll: async (workspaceId: number) => {
-    const { data } = await api.get(`/workspaces/${workspaceId}/tasks`);
+  getAll: async (
+    workspaceId: number,
+    page = 1,
+    limit = 10,
+    status?: "pending" | "completed",
+  ) => {
+    const { data } = await api.get(`/workspaces/${workspaceId}/tasks`, {
+      params: { page, limit, status },
+    });
     return data;
   },
 

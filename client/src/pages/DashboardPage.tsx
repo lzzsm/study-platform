@@ -16,6 +16,10 @@ import {
 import type { Workspace } from "@/types/workspace.types";
 import type { Habit } from "@/types/habit.types";
 import type { Goal } from "@/types/goal.types";
+import { TasksChart } from "@/components/charts/TasksChart";
+import { GoalsChart } from "@/components/charts/GoalsChart";
+import { HabitsChart } from "@/components/charts/HabitsChart";
+import { GoalsProgressChart } from "@/components/charts/GoalsProgressChart";
 
 function DashboardPage() {
   const navigate = useNavigate();
@@ -89,6 +93,52 @@ function DashboardPage() {
             <p className="text-3xl font-bold">
               {analytics?.habits.pending.length}
             </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Analytics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Tarefas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TasksChart
+              pending={analytics?.tasks.pending ?? 0}
+              completed={analytics?.tasks.completed ?? 0}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Metas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <GoalsChart
+              completed={analytics?.goals.stats.completed ?? 0}
+              inProgress={analytics?.goals.stats.inProgress ?? 0}
+              notStarted={analytics?.goals.stats.notStarted ?? 0}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Top hábitos por streak</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <HabitsChart habits={analytics?.habits.top5 ?? []} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Progresso das metas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <GoalsProgressChart goals={analytics?.goals.top5 ?? []} />
           </CardContent>
         </Card>
       </div>

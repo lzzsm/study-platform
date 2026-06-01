@@ -66,9 +66,50 @@ async function getBestStreak(owner_id: number) {
   return Number(result.rows[0].best_streak);
 }
 
+async function getGoalStats(owner_id: number) {
+  const result = await pool.query(
+    `SELECT
+      COUNT(*) FILTER (WHERE 
+        (type = 'qualitative' AND completed = true) OR
+        (type = 'quantitative' AND current_value >= target_value)
+      ) AS completed,
+      COUNT(*) FILTER (WHERE 
+        (type = 'qualitative' AND completed = false) OR
+        (type = 'quantitative' AND current_value > 0 AND current_value < target_value)
+      ) AS in_progress,
+      COUNT(*) FILTER (WHERE 
+        type = 'quantitative' AND current_value = 0
+      ) AS not_started
+     FROM goals g
+     JOIN workspaces w ON w.id = g.workspace_id
+     WHERE w.owner_id = $1
+       AND g.deleted_at IS NULL
+       AND w.deleted_at IS NULL`,
+    [owner_id],
+  );
+  return result.rows[0];
+}
+
+async function getTopHabits(owner_id: number) {
+  const result = await pool.query(
+    `SELECT h.title, h.streak
+     FROM habits h
+     JOIN workspaces w ON w.id = h.workspace_id
+     WHERE w.owner_id = $1
+       AND h.deleted_at IS NULL
+       AND w.deleted_at IS NULL
+     ORDER BY h.streak DESC
+     LIMIT 5`,
+    [owner_id],
+  );
+  return result.rows;
+}
+
 export const analyticsRepository = {
   getTaskStats,
   getPendingHabitsToday,
   getTopGoals,
+  getGoalStats,
   getBestStreak,
+  getTopHabits,
 };
