@@ -20,6 +20,7 @@ import { TasksChart } from "@/components/charts/TasksChart";
 import { GoalsChart } from "@/components/charts/GoalsChart";
 import { HabitsChart } from "@/components/charts/HabitsChart";
 import { GoalsProgressChart } from "@/components/charts/GoalsProgressChart";
+import { DashboardPageSkeleton } from "@/components/skeletons/DashboardPageSkeleton";
 
 function DashboardPage() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ function DashboardPage() {
   const completeHabit = useCompleteHabitFromDashboard();
 
   if (loadingUser || loadingWorkspaces || loadingAnalytics)
-    return <p>Carregando...</p>;
+    return <DashboardPageSkeleton />;
 
   return (
     <div className="space-y-8">
@@ -97,7 +98,7 @@ function DashboardPage() {
         </Card>
       </div>
 
-      {/* Analytics */}
+      {/* Gráficos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -144,11 +145,11 @@ function DashboardPage() {
       </div>
 
       {/* Hábitos pendentes hoje */}
-      {analytics?.habits.pending.length > 0 && (
+      {(analytics?.habits.pending.length ?? 0) > 0 && (
         <div className="space-y-3">
           <h2 className="text-xl font-semibold">Hábitos para hoje</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {analytics.habits.pending.map((habit: Habit) => (
+            {analytics!.habits.pending.map((habit: Habit) => (
               <Card
                 key={habit.id}
                 className="flex items-center justify-between p-4"
@@ -179,11 +180,11 @@ function DashboardPage() {
       )}
 
       {/* Top metas */}
-      {analytics?.goals.top5.length > 0 && (
+      {(analytics?.goals.top5.length ?? 0) > 0 && (
         <div className="space-y-3">
           <h2 className="text-xl font-semibold">Progresso das metas</h2>
           <div className="space-y-3">
-            {analytics.goals.top5.map(
+            {analytics!.goals.top5.map(
               (goal: Goal & { progress_pct: number }) => (
                 <div key={goal.id} className="space-y-1">
                   <div className="flex items-center justify-between">

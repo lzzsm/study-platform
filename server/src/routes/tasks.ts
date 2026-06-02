@@ -1,21 +1,27 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { taskService } from "../services/taskService";
 import { authMiddleware } from "../middleware/auth";
+import { validate } from "../middleware/validate";
 import { AppError } from "../errors/AppError";
+import { createTaskSchema, updateTaskSchema } from "../schemas/task.schemas";
 
 const router = Router({ mergeParams: true });
 router.use(authMiddleware);
 
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { title, description } = req.body;
-    const workspace_id = Number(req.params.workspaceId);
-    const task = await taskService.create(title, description, workspace_id);
-    res.status(201).json(task);
-  } catch (err) {
-    next(err);
-  }
-});
+router.post(
+  "/",
+  validate(createTaskSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { title, description } = req.body;
+      const workspace_id = Number(req.params.workspaceId);
+      const task = await taskService.create(title, description, workspace_id);
+      res.status(201).json(task);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -23,7 +29,6 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
     const status = req.query.status as "pending" | "completed" | undefined;
-
     const result = await taskService.findAll(workspace_id, page, limit, status);
     res.status(200).json(result);
   } catch (err) {
@@ -45,20 +50,24 @@ router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { title, description } = req.body;
-    const task = await taskService.update(
-      Number(req.params.id),
-      title,
-      description,
-    );
-    if (!task) throw new AppError("Task não encontrada.", 404);
-    res.status(200).json(task);
-  } catch (err) {
-    next(err);
-  }
-});
+router.put(
+  "/:id",
+  validate(updateTaskSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { title, description } = req.body;
+      const task = await taskService.update(
+        Number(req.params.id),
+        title,
+        description,
+      );
+      if (!task) throw new AppError("Task não encontrada.", 404);
+      res.status(200).json(task);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 router.patch(
   "/:id/toggle",

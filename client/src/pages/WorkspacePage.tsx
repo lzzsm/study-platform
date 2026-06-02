@@ -28,9 +28,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import type { Task } from "@/types/task.types";
 import type { Goal } from "@/types/goal.types";
 import type { Habit } from "@/types/habit.types";
+import { TaskListSkeleton } from "@/components/skeletons/TaskListSkeleton";
+import { CardGridSkeleton } from "@/components/skeletons/CardGridSkeleton";
+import { HabitGridSkeleton } from "@/components/skeletons/HabitGridSkeleton";
+import { WorkspacePageSkeleton } from "@/components/skeletons/WorkspacePageSkeleton";
 
 function WorkspacePage() {
   const { id } = useParams();
@@ -91,7 +102,7 @@ function WorkspacePage() {
     );
   }
 
-  if (loadingWorkspace) return <p>Carregando...</p>;
+  if (loadingWorkspace) return <WorkspacePageSkeleton />;
   if (!workspace) return <p>Workspace não encontrado.</p>;
 
   return (
@@ -134,7 +145,6 @@ function WorkspacePage() {
           </Button>
         </div>
 
-        {/* Filtros */}
         <div className="flex gap-2">
           <Button
             size="sm"
@@ -169,7 +179,7 @@ function WorkspacePage() {
         </div>
 
         {loadingTasks ? (
-          <p className="text-muted-foreground text-sm">Carregando tarefas...</p>
+          <TaskListSkeleton />
         ) : (
           <div className="space-y-2">
             {tasks.map((task: Task) => (
@@ -230,29 +240,38 @@ function WorkspacePage() {
               </p>
             )}
 
-            {/* Paginação */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setPage((p) => p - 1)}
-                  disabled={page === 1}
-                >
-                  Anterior
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Página {page} de {totalPages}
-                </span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={page === totalPages}
-                >
-                  Próxima
-                </Button>
-              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setPage((p) => p - 1)}
+                      aria-disabled={page === 1}
+                      className={
+                        page === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <span className="text-sm text-muted-foreground px-4">
+                      Página {page} de {totalPages}
+                    </span>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setPage((p) => p + 1)}
+                      aria-disabled={page === totalPages}
+                      className={
+                        page === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             )}
           </div>
         )}
@@ -265,7 +284,7 @@ function WorkspacePage() {
           <CreateGoalDialog workspaceId={workspaceId} />
         </div>
         {loadingGoals ? (
-          <p className="text-muted-foreground text-sm">Carregando metas...</p>
+          <CardGridSkeleton count={4} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {goals?.map((goal: Goal) => (
@@ -306,7 +325,7 @@ function WorkspacePage() {
         </div>
 
         {loadingHabits ? (
-          <p className="text-muted-foreground text-sm">Carregando hábitos...</p>
+          <HabitGridSkeleton count={4} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {habits?.map((habit: Habit) => (

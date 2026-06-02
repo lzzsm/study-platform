@@ -1,11 +1,4 @@
-import { AppError } from "../errors/AppError";
 import { goalRepository } from "../repositories/goalRepository";
-import {
-  createGoalSchema,
-  updateGoalSchema,
-  updateProgressSchema,
-  toggleGoalSchema,
-} from "../schemas/goal.schemas";
 
 async function create(
   title: string,
@@ -15,14 +8,6 @@ async function create(
   expires_at: string | null,
   workspace_id: number,
 ) {
-  const result = createGoalSchema.safeParse({
-    title,
-    description,
-    type,
-    target_value,
-    expires_at,
-  });
-  if (!result.success) throw new AppError(result.error.issues[0].message, 400);
   return goalRepository.create(
     title,
     description,
@@ -40,13 +25,6 @@ async function update(
   target_value: number | null,
   expires_at: string | null,
 ) {
-  const result = updateGoalSchema.safeParse({
-    title,
-    description,
-    target_value,
-    expires_at,
-  });
-  if (!result.success) throw new AppError("Dados inválidos.", 400);
   return goalRepository.update(
     id,
     title,
@@ -57,14 +35,10 @@ async function update(
 }
 
 async function updateProgress(id: number, current_value: number) {
-  const result = updateProgressSchema.safeParse({ current_value });
-  if (!result.success) throw new AppError("Dados inválidos.", 400);
   return goalRepository.updateProgress(id, current_value);
 }
 
 async function toggleCompleted(id: number, completed: boolean) {
-  const result = toggleGoalSchema.safeParse({ completed });
-  if (!result.success) throw new AppError("Dados inválidos.", 400);
   return goalRepository.toggleCompleted(id, completed);
 }
 

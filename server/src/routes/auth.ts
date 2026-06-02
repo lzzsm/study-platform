@@ -3,6 +3,8 @@ import { authService } from "../services/authService";
 import { authMiddleware } from "../middleware/auth";
 import { AppError } from "../errors/AppError";
 import { userRepository } from "../repositories/userRepository";
+import { validate } from "../middleware/validate";
+import { registerSchema, loginSchema } from "../schemas/auth.schemas";
 
 const router = Router();
 
@@ -20,30 +22,24 @@ router.get(
   },
 );
 
-router.post(
-  "/register",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { name, email, password } = req.body;
-      const token = await authService.register(name, email, password);
-      res.status(201).json({ token });
-    } catch (err) {
-      next(err);
-    }
-  },
-);
+router.post("/register", validate(registerSchema), async (req, res, next) => {
+  try {
+    const { name, email, password } = req.body;
+    const token = await authService.register(name, email, password);
+    res.status(201).json({ token });
+  } catch (err) {
+    next(err);
+  }
+});
 
-router.post(
-  "/login",
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { email, password } = req.body;
-      const token = await authService.login(email, password);
-      res.status(200).json({ token });
-    } catch (err) {
-      next(err);
-    }
-  },
-);
+router.post("/login", validate(loginSchema), async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const token = await authService.login(email, password);
+    res.status(200).json({ token });
+  } catch (err) {
+    next(err);
+  }
+});
 
 export default router;

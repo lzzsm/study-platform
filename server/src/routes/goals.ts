@@ -1,28 +1,39 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { goalService } from "../services/goalService";
 import { authMiddleware } from "../middleware/auth";
+import { validate } from "../middleware/validate";
 import { AppError } from "../errors/AppError";
+import {
+  createGoalSchema,
+  updateGoalSchema,
+  updateProgressSchema,
+  toggleGoalSchema,
+} from "../schemas/goal.schemas";
 
 const router = Router({ mergeParams: true });
 router.use(authMiddleware);
 
-router.post("/", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { title, description, type, target_value, expires_at } = req.body;
-    const workspace_id = Number(req.params.workspaceId);
-    const goal = await goalService.create(
-      title,
-      description,
-      type,
-      target_value,
-      expires_at,
-      workspace_id,
-    );
-    res.status(201).json(goal);
-  } catch (err) {
-    next(err);
-  }
-});
+router.post(
+  "/",
+  validate(createGoalSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { title, description, type, target_value, expires_at } = req.body;
+      const workspace_id = Number(req.params.workspaceId);
+      const goal = await goalService.create(
+        title,
+        description,
+        type,
+        target_value,
+        expires_at,
+        workspace_id,
+      );
+      res.status(201).json(goal);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -48,25 +59,30 @@ router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { title, description, target_value, expires_at } = req.body;
-    const goal = await goalService.update(
-      Number(req.params.id),
-      title,
-      description,
-      target_value,
-      expires_at,
-    );
-    if (!goal) throw new AppError("Meta não encontrada.", 404);
-    res.status(200).json(goal);
-  } catch (err) {
-    next(err);
-  }
-});
+router.put(
+  "/:id",
+  validate(updateGoalSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { title, description, target_value, expires_at } = req.body;
+      const goal = await goalService.update(
+        Number(req.params.id),
+        title,
+        description,
+        target_value,
+        expires_at,
+      );
+      if (!goal) throw new AppError("Meta não encontrada.", 404);
+      res.status(200).json(goal);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 router.patch(
   "/:id/progress",
+  validate(updateProgressSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { current_value } = req.body;
@@ -84,6 +100,7 @@ router.patch(
 
 router.patch(
   "/:id/toggle",
+  validate(toggleGoalSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { completed } = req.body;
