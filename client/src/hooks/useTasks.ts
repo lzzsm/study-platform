@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "@/services/task.service";
 import { toast } from "sonner";
+import type { Task } from "@/types/task.types";
 
 export function useTasks(
   workspaceId: number,
@@ -67,13 +68,45 @@ export function useToggleTask(workspaceId: number) {
   return useMutation({
     mutationFn: ({ id, completed }: { id: number; completed: boolean }) =>
       taskService.toggle(workspaceId, id, completed),
-    onSuccess: () => {
+    onMutate: async ({ id, completed }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["workspaces", workspaceId, "tasks"],
+      });
+
+      const previous = queryClient.getQueryData([
+        "workspaces",
+        workspaceId,
+        "tasks",
+      ]);
+
+      queryClient.setQueryData(
+        ["workspaces", workspaceId, "tasks"],
+        (old: { tasks: Task[]; total: number } | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            tasks: old.tasks.map((task: Task) =>
+              task.id === id ? { ...task, completed } : task,
+            ),
+          };
+        },
+      );
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          ["workspaces", workspaceId, "tasks"],
+          context.previous,
+        );
+      }
+      toast.error("Erro ao atualizar tarefa.");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["workspaces", workspaceId, "tasks"],
       });
-    },
-    onError: () => {
-      toast.error("Erro ao atualizar task.");
     },
   });
 }

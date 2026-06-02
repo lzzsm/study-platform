@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { goalService } from "@/services/goal.service";
 import { toast } from "sonner";
+import type { Goal } from "@/types/goal.types";
 
 export function useGoals(workspaceId: number) {
   return useQuery({
@@ -86,13 +87,42 @@ export function useToggleGoal(workspaceId: number) {
   return useMutation({
     mutationFn: ({ id, completed }: { id: number; completed: boolean }) =>
       goalService.toggle(workspaceId, id, completed),
-    onSuccess: () => {
+    onMutate: async ({ id, completed }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["workspaces", workspaceId, "goals"],
+      });
+
+      const previous = queryClient.getQueryData([
+        "workspaces",
+        workspaceId,
+        "goals",
+      ]);
+
+      queryClient.setQueryData(
+        ["workspaces", workspaceId, "goals"],
+        (old: Goal[] | undefined) => {
+          if (!old) return old;
+          return old.map((goal: Goal) =>
+            goal.id === id ? { ...goal, completed } : goal,
+          );
+        },
+      );
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          ["workspaces", workspaceId, "goals"],
+          context.previous,
+        );
+      }
+      toast.error("Erro ao atualizar meta.");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["workspaces", workspaceId, "goals"],
       });
-    },
-    onError: () => {
-      toast.error("Erro ao atualizar meta.");
     },
   });
 }

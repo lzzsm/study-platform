@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { habitService } from "@/services/habit.service";
 import { toast } from "sonner";
+import type { Habit } from "@/types/habit.types";
 
 export function useHabits(workspaceId: number) {
   return useQuery({
@@ -37,18 +38,49 @@ export function useCompleteHabit(workspaceId: number) {
 
   return useMutation({
     mutationFn: (id: number) => habitService.complete(workspaceId, id),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({
         queryKey: ["workspaces", workspaceId, "habits"],
       });
+
+      const previous = queryClient.getQueryData([
+        "workspaces",
+        workspaceId,
+        "habits",
+      ]);
+
+      queryClient.setQueryData(
+        ["workspaces", workspaceId, "habits"],
+        (old: Habit[] | undefined) => {
+          if (!old) return old;
+          return old.map((habit: Habit) =>
+            habit.id === id ? { ...habit, streak: habit.streak + 1 } : habit,
+          );
+        },
+      );
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          ["workspaces", workspaceId, "habits"],
+          context.previous,
+        );
+      }
+      toast.error("Erro ao completar hábito.");
+    },
+    onSuccess: (data) => {
       if (data?.alreadyCompleted) {
         toast.info("Hábito já completado hoje.");
       } else {
         toast.success("Hábito completado! 🔥");
       }
     },
-    onError: () => {
-      toast.error("Erro ao completar hábito.");
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["workspaces", workspaceId, "habits"],
+      });
     },
   });
 }
