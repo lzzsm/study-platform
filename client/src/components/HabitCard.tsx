@@ -21,8 +21,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { EditHabitDialog } from "@/components/EditHabitDialog";
+import { memo } from "react";
 
-export function HabitCard({
+export const HabitCard = memo(function HabitCard({
   habit,
   workspaceId,
 }: {
@@ -86,4 +87,4 @@ export function HabitCard({
       </CardFooter>
     </Card>
   );
-}
+});

@@ -1,17 +1,32 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
-import ProtectedRoute from "./components/ProtectedRoute";
-import WorkspacesPage from "./pages/WorkspacesPage";
-import AppLayout from "./components/AppLayout";
 import WorkspacePage from "./pages/WorkspacePage";
+import WorkspacesPage from "./pages/WorkspacesPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import PublicRoute from "./components/PublicRoute";
+import AppLayout from "./components/AppLayout";
 
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <RegisterPage />
+          </PublicRoute>
+        }
+      />
       <Route
         path="/dashboard"
         element={
@@ -42,7 +57,8 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }

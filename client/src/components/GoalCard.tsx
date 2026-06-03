@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
   Card,
   CardContent,
@@ -28,7 +28,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export function GoalCard({
+export const GoalCard = memo(function GoalCard({
   goal,
   workspaceId,
 }: {
@@ -129,4 +129,4 @@ export function GoalCard({
       </CardFooter>
     </Card>
   );
-}
+});
