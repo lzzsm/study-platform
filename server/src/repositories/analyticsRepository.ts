@@ -90,26 +90,10 @@ async function getGoalStats(owner_id: number) {
   return result.rows[0];
 }
 
-async function getTopHabits(owner_id: number) {
-  const result = await pool.query(
-    `SELECT h.title, h.streak
-     FROM habits h
-     JOIN workspaces w ON w.id = h.workspace_id
-     WHERE w.owner_id = $1
-       AND h.deleted_at IS NULL
-       AND w.deleted_at IS NULL
-     ORDER BY h.streak DESC
-     LIMIT 5`,
-    [owner_id],
-  );
-  return result.rows;
-}
-
 export const analyticsRepository = {
   getTaskStats,
   getPendingHabitsToday,
   getTopGoals,
   getGoalStats,
   getBestStreak,
-  getTopHabits,
 };

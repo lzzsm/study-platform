@@ -18,7 +18,6 @@ import type { Habit } from "@/types/habit.types";
 import type { Goal } from "@/types/goal.types";
 import { TasksChart } from "@/components/charts/TasksChart";
 import { GoalsChart } from "@/components/charts/GoalsChart";
-import { HabitsChart } from "@/components/charts/HabitsChart";
 import { GoalsProgressChart } from "@/components/charts/GoalsProgressChart";
 import { DashboardPageSkeleton } from "@/components/skeletons/DashboardPageSkeleton";
 
@@ -122,15 +121,6 @@ function DashboardPage() {
               inProgress={analytics?.goals.stats.inProgress ?? 0}
               notStarted={analytics?.goals.stats.notStarted ?? 0}
             />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Top hábitos por streak</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <HabitsChart habits={analytics?.habits.top5 ?? []} />
           </CardContent>
         </Card>
 

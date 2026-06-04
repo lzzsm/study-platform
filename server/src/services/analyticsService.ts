@@ -1,14 +1,13 @@
 import { analyticsRepository } from "../repositories/analyticsRepository";
 
 async function getAnalytics(owner_id: number) {
-  const [taskStats, pendingHabits, topGoals, bestStreak, goalStats, topHabits] =
+  const [taskStats, pendingHabits, topGoals, bestStreak, goalStats] =
     await Promise.all([
       analyticsRepository.getTaskStats(owner_id),
       analyticsRepository.getPendingHabitsToday(owner_id),
       analyticsRepository.getTopGoals(owner_id),
       analyticsRepository.getBestStreak(owner_id),
       analyticsRepository.getGoalStats(owner_id),
-      analyticsRepository.getTopHabits(owner_id),
     ]);
 
   return {
@@ -18,7 +17,6 @@ async function getAnalytics(owner_id: number) {
     },
     habits: {
       pending: pendingHabits,
-      top5: topHabits,
     },
     goals: {
       top5: topGoals,

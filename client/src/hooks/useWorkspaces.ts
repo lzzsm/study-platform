@@ -6,6 +6,7 @@ export function useWorkspaces() {
   return useQuery({
     queryKey: ["workspaces"],
     queryFn: workspaceService.getAll,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 
@@ -13,6 +14,7 @@ export function useWorkspace(id: number) {
   return useQuery({
     queryKey: ["workspaces", id],
     queryFn: () => workspaceService.getById(id),
+    staleTime: 1000 * 60 * 5, // 5 minutes
     enabled: !!id,
   });
 }

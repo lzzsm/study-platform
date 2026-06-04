@@ -11,6 +11,7 @@ export function useTasks(
   return useQuery({
     queryKey: ["workspaces", workspaceId, "tasks", page, status],
     queryFn: () => taskService.getAll(workspaceId, page, 10, status),
+    staleTime: 1000 * 30, // 30 seconds
   });
 }
 

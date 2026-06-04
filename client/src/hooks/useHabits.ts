@@ -7,6 +7,7 @@ export function useHabits(workspaceId: number) {
   return useQuery({
     queryKey: ["workspaces", workspaceId, "habits"],
     queryFn: () => habitService.getAll(workspaceId),
+    staleTime: 1000 * 60 * 2, // 2 minutes
   });
 }
 

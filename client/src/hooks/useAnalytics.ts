@@ -5,6 +5,6 @@ export function useAnalytics() {
   return useQuery({
     queryKey: ["analytics"],
     queryFn: analyticsService.getAnalytics,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 2, // 2 minutes
   });
 }
