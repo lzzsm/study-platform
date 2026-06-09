@@ -3,6 +3,7 @@ import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useCompleteHabitFromDashboard } from "@/hooks/useHabits";
 import { useNavigate } from "react-router-dom";
+import { useTabsStore } from "@/store/tabsStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,10 +13,12 @@ import {
   Clock,
   Flame,
   Target,
+  User,
+  ArrowRight,
+  LayoutDashboard,
 } from "lucide-react";
 import type { Workspace } from "@/types/workspace.types";
 import type { Habit } from "@/types/habit.types";
-import type { Goal } from "@/types/goal.types";
 import { TasksChart } from "@/components/charts/TasksChart";
 import { GoalsChart } from "@/components/charts/GoalsChart";
 import { GoalsProgressChart } from "@/components/charts/GoalsProgressChart";
@@ -27,81 +30,174 @@ function DashboardPage() {
   const { data: workspaces, isLoading: loadingWorkspaces } = useWorkspaces();
   const { data: analytics, isLoading: loadingAnalytics } = useAnalytics();
   const completeHabit = useCompleteHabitFromDashboard();
+  const { tabs } = useTabsStore();
 
   if (loadingUser || loadingWorkspaces || loadingAnalytics)
     return <DashboardPageSkeleton />;
 
+  const recentWorkspaces =
+    tabs.length > 0
+      ? (workspaces?.filter((w: Workspace) =>
+          tabs.some((t) => t.id === w.id),
+        ) ?? [])
+      : (workspaces?.slice(0, 3) ?? []);
+
+  const greeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Bom dia";
+    if (hour < 18) return "Boa tarde";
+    return "Boa noite";
+  };
+
   return (
     <div className="space-y-8">
+      {/* ── HEADER ── */}
       <div>
-        <h1 className="text-3xl font-bold">Olá, {user?.name} 👋</h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-sm text-muted-foreground mb-1">
           {new Date().toLocaleDateString("pt-BR", {
             weekday: "long",
             day: "numeric",
             month: "long",
           })}
         </p>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {greeting()}, {user?.name?.split(" ")[0]} 👋
+        </h1>
       </div>
 
-      {/* Stats */}
+      {/* ── STATS ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="size-4" />
-              Tarefas pendentes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{analytics?.tasks.pending}</p>
+        <Card className="border-0 bg-muted/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-background">
+                <Clock className="size-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{analytics?.tasks.pending}</p>
+                <p className="text-xs text-muted-foreground">
+                  Tarefas pendentes
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <CheckCircle className="size-4" />
-              Tarefas completas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{analytics?.tasks.completed}</p>
+        <Card className="border-0 bg-muted/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-background">
+                <CheckCircle className="size-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  {analytics?.tasks.completed}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Tarefas completas
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Flame className="size-4" />
-              Melhor streak
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{analytics?.bestStreak} dias</p>
+        <Card className="border-0 bg-muted/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-background">
+                <Flame className="size-4 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{analytics?.bestStreak}</p>
+                <p className="text-xs text-muted-foreground">Melhor streak</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Target className="size-4" />
-              Hábitos pendentes hoje
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {analytics?.habits.pending.length}
-            </p>
+        <Card className="border-0 bg-muted/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-background">
+                <Target className="size-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  {analytics?.habits.pending.length}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Hábitos pendentes
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Gráficos */}
+      {/* ── NAVEGAÇÃO RÁPIDA ── */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Navegação rápida
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/dashboard")}
+          >
+            <LayoutDashboard className="size-4 mr-2" />
+            Dashboard
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/workspaces")}
+          >
+            <BookOpen className="size-4 mr-2" />
+            Workspaces
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/profile")}
+          >
+            <User className="size-4 mr-2" />
+            Perfil
+          </Button>
+
+          {recentWorkspaces.length > 0 && (
+            <div className="w-px h-8 bg-border self-center mx-1" />
+          )}
+
+          {recentWorkspaces.map((workspace: Workspace) => (
+            <Button
+              key={workspace.id}
+              variant="secondary"
+              size="sm"
+              onClick={() => navigate(`/workspaces/${workspace.id}`)}
+            >
+              {workspace.name}
+              <ArrowRight className="size-3 ml-2" />
+            </Button>
+          ))}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/workspaces")}
+          >
+            <Plus className="size-4 mr-1" />
+            Novo workspace
+          </Button>
+        </div>
+      </div>
+
+      {/* ── GRÁFICOS + HÁBITOS ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Tarefas</CardTitle>
+        {/* Tarefas */}
+        <Card className="border-0 bg-muted/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Tarefas</CardTitle>
           </CardHeader>
           <CardContent>
             <TasksChart
@@ -111,9 +207,10 @@ function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Metas</CardTitle>
+        {/* Metas */}
+        <Card className="border-0 bg-muted/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Metas</CardTitle>
           </CardHeader>
           <CardContent>
             <GoalsChart
@@ -124,121 +221,70 @@ function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Progresso das metas</CardTitle>
+        {/* Progresso das metas */}
+        <Card className="border-0 bg-muted/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Progresso das metas
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <GoalsProgressChart goals={analytics?.goals.top5 ?? []} />
           </CardContent>
         </Card>
-      </div>
 
-      {/* Hábitos pendentes hoje */}
-      {(analytics?.habits.pending.length ?? 0) > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-xl font-semibold">Hábitos para hoje</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {analytics!.habits.pending.map((habit: Habit) => (
-              <Card
-                key={habit.id}
-                className="flex items-center justify-between p-4"
-              >
-                <div>
-                  <p className="text-sm font-medium">{habit.title}</p>
-                  <div className="flex items-center gap-1 text-orange-500 mt-1">
-                    <Flame className="size-3" />
-                    <span className="text-xs">{habit.streak} dias</span>
+        {/* Hábitos para hoje */}
+        <Card className="border-0 bg-muted/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Flame className="size-4 text-orange-500" />
+              Hábitos para hoje
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(analytics?.habits.pending.length ?? 0) === 0 ? (
+              <div className="pt-4 pb-2 text-center">
+                <CheckCircle className="size-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  Todos os hábitos feitos hoje!
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2 pt-1">
+                {analytics!.habits.pending.map((habit: Habit) => (
+                  <div
+                    key={habit.id}
+                    className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-orange-500">
+                        <Flame className="size-3.5" />
+                        <span className="text-xs font-medium">
+                          {habit.streak}
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium">{habit.title}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        completeHabit.mutate({
+                          habitId: habit.id,
+                          workspaceId: habit.workspace_id,
+                        })
+                      }
+                      disabled={completeHabit.isPending}
+                    >
+                      <CheckCircle className="size-3.5 mr-1" />
+                      Feito
+                    </Button>
                   </div>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    completeHabit.mutate({
-                      habitId: habit.id,
-                      workspaceId: habit.workspace_id,
-                    })
-                  }
-                  disabled={completeHabit.isPending}
-                >
-                  <CheckCircle className="size-4" />
-                </Button>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Top metas */}
-      {(analytics?.goals.top5.length ?? 0) > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-xl font-semibold">Progresso das metas</h2>
-          <div className="space-y-3">
-            {analytics!.goals.top5.map(
-              (goal: Goal & { progress_pct: number }) => (
-                <div key={goal.id} className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">{goal.title}</p>
-                    <span className="text-sm text-muted-foreground">
-                      {goal.progress_pct}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all"
-                      style={{ width: `${goal.progress_pct}%` }}
-                    />
-                  </div>
-                </div>
-              ),
+                ))}
+              </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Workspaces */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Seus workspaces</h2>
-          <Button size="sm" onClick={() => navigate("/workspaces")}>
-            <Plus />
-            Novo
-          </Button>
-        </div>
-
-        {workspaces?.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            Nenhum workspace ainda.{" "}
-            <span
-              className="underline cursor-pointer"
-              onClick={() => navigate("/workspaces")}
-            >
-              Crie o primeiro.
-            </span>
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {workspaces?.map((workspace: Workspace) => (
-              <Card
-                key={workspace.id}
-                className="cursor-pointer hover:border-foreground/30 transition-colors"
-                onClick={() => navigate(`/workspaces/${workspace.id}`)}
-              >
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <BookOpen className="size-4" />
-                    {workspace.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {workspace.description || "Sem descrição"}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
