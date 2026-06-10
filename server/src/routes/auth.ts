@@ -13,7 +13,7 @@ router.get(
   authMiddleware,
   async (req: any, res: Response, next: NextFunction) => {
     try {
-      const user = await userRepository.findById(req.user.id);
+      const user = await userRepository.findPublicById(req.user.id);
       if (!user) throw new AppError("Usuário não encontrado.", 404);
       res.json(user);
     } catch (err) {

@@ -1,20 +1,23 @@
 import "dotenv/config";
-import pool from "../database";
+import pool from "../../database";
 
 async function migrate() {
+  
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
+    CREATE TABLE users (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
+      avatar_url TEXT,
+      bio TEXT,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     )
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS workspaces (
+    CREATE TABLE workspaces (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
@@ -26,7 +29,7 @@ async function migrate() {
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS tasks (
+    CREATE TABLE tasks (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       description TEXT,
@@ -44,8 +47,10 @@ async function migrate() {
     EXCEPTION
       WHEN duplicate_object THEN null;
     END $$;
+  `);
 
-    CREATE TABLE IF NOT EXISTS goals (
+  await pool.query(`
+    CREATE TABLE goals (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       description TEXT,
@@ -58,11 +63,11 @@ async function migrate() {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       deleted_at TIMESTAMP
-    );
+    )
   `);
 
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS habits (
+    CREATE TABLE habits (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       description TEXT,
@@ -71,18 +76,20 @@ async function migrate() {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       deleted_at TIMESTAMP
-    );
+    )
+  `);
 
-    CREATE TABLE IF NOT EXISTS habit_logs (
+  await pool.query(`
+    CREATE TABLE habit_logs (
       id SERIAL PRIMARY KEY,
       habit_id INTEGER REFERENCES habits(id) ON DELETE CASCADE,
       completed_at DATE NOT NULL DEFAULT CURRENT_DATE,
       created_at TIMESTAMP DEFAULT NOW(),
       UNIQUE(habit_id, completed_at)
-    );
+    )
   `);
 
-  console.log("Migrations concluídas.");
+  console.log("Migration 001_initial concluída.");
   process.exit(0);
 }
 
