@@ -7,7 +7,7 @@ import WorkspacesPage from "./pages/WorkspacesPage";
 import ProfilePage from "./pages/ProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
-import AppLayout from "./components/AppLayout";
+import AppLayout from "./components/layout/AppLayout";
 
 function App() {
   return (

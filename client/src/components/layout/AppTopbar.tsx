@@ -3,7 +3,7 @@ import { useTabsStore } from "@/store/tabsStore";
 import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function Topbar() {
+export function AppTopbar() {
   const navigate = useNavigate();
   const { tabs, activeTabId, closeTab, setActiveTab } = useTabsStore();
 
