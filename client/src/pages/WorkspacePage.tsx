@@ -44,6 +44,7 @@ import { CardGridSkeleton } from "@/components/skeletons/CardGridSkeleton";
 import { HabitGridSkeleton } from "@/components/skeletons/HabitGridSkeleton";
 import { WorkspacePageSkeleton } from "@/components/skeletons/WorkspacePageSkeleton";
 import { useTabsStore } from "@/store/tabsStore";
+import { WorkspaceMembers } from "@/components/WorkspaceMembers";
 
 function WorkspacePage() {
   const { id } = useParams();
@@ -140,6 +141,7 @@ function WorkspacePage() {
           <TabsTrigger value="tasks">Tarefas</TabsTrigger>
           <TabsTrigger value="goals">Metas</TabsTrigger>
           <TabsTrigger value="habits">Hábitos</TabsTrigger>
+          <TabsTrigger value="members">Membros</TabsTrigger>
         </TabsList>
 
         {/* ── TAREFAS ── */}
@@ -369,6 +371,11 @@ function WorkspacePage() {
               )}
             </div>
           )}
+        </TabsContent>
+
+        {/* ── MEMBROS ── */}
+        <TabsContent value="members" className="mt-4">
+          <WorkspaceMembers workspaceId={workspaceId} />
         </TabsContent>
       </Tabs>
     </div>

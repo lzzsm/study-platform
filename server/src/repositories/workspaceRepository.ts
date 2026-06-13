@@ -3,18 +3,26 @@ import { Workspace } from "../types/workspace.types";
 
 async function findById(
   id: number,
-  owner_id: number,
+  user_id: number,
 ): Promise<Workspace | null> {
   const result = await pool.query(
-    "SELECT * FROM workspaces WHERE id = $1 AND owner_id = $2 AND deleted_at IS NULL",
-    [id, owner_id],
+    `SELECT DISTINCT w.* FROM workspaces w
+     LEFT JOIN workspace_members wm ON wm.workspace_id = w.id
+     WHERE w.id = $1
+       AND (w.owner_id = $2 OR wm.user_id = $2)
+       AND w.deleted_at IS NULL`,
+    [id, user_id],
   );
   return result.rows[0] || null;
 }
 
 async function findAll(owner_id: number): Promise<Workspace[]> {
   const result = await pool.query(
-    "SELECT * FROM workspaces WHERE owner_id = $1 AND deleted_at IS NULL",
+    `SELECT DISTINCT w.* FROM workspaces w
+     LEFT JOIN workspace_members wm ON wm.workspace_id = w.id
+     WHERE (w.owner_id = $1 OR wm.user_id = $1)
+       AND w.deleted_at IS NULL
+     ORDER BY w.created_at DESC`,
     [owner_id],
   );
   return result.rows;
