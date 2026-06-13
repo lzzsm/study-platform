@@ -9,12 +9,46 @@ import {
   updateProgressSchema,
   toggleGoalSchema,
 } from "../schemas/goal.schemas";
+import { requireWorkspaceRole } from "../middleware/workspaceAuth";
 
 const router = Router({ mergeParams: true });
 router.use(authMiddleware);
 
+router.get(
+  "/",
+  requireWorkspaceRole("owner", "editor", "viewer"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const workspace_id = Number(req.params.workspaceId);
+      const goals = await goalService.findAll(workspace_id);
+      res.status(200).json(goals);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  "/:id",
+  requireWorkspaceRole("owner", "editor", "viewer"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const workspace_id = Number(req.params.workspaceId);
+      const goal = await goalService.findById(
+        Number(req.params.id),
+        workspace_id,
+      );
+      if (!goal) throw new AppError("Meta não encontrada.", 404);
+      res.status(200).json(goal);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 router.post(
   "/",
+  requireWorkspaceRole("owner", "editor"),
   validate(createGoalSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -35,32 +69,9 @@ router.post(
   },
 );
 
-router.get("/", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const workspace_id = Number(req.params.workspaceId);
-    const goals = await goalService.findAll(workspace_id);
-    res.status(200).json(goals);
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const workspace_id = Number(req.params.workspaceId);
-    const goal = await goalService.findById(
-      Number(req.params.id),
-      workspace_id,
-    );
-    if (!goal) throw new AppError("Meta não encontrada.", 404);
-    res.status(200).json(goal);
-  } catch (err) {
-    next(err);
-  }
-});
-
 router.put(
   "/:id",
+  requireWorkspaceRole("owner", "editor"),
   validate(updateGoalSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -82,6 +93,7 @@ router.put(
 
 router.patch(
   "/:id/progress",
+  requireWorkspaceRole("owner", "editor"),
   validate(updateProgressSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -100,6 +112,7 @@ router.patch(
 
 router.patch(
   "/:id/toggle",
+  requireWorkspaceRole("owner", "editor"),
   validate(toggleGoalSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -118,6 +131,7 @@ router.patch(
 
 router.delete(
   "/:id",
+  requireWorkspaceRole("owner", "editor"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const goal = await goalService.remove(Number(req.params.id));

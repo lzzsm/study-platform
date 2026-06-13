@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
-    "migrate": "ts-node src/database/migrations/001_initial.ts"
+    "migrate": "ts-node src/database/migrations/001_initial.ts",
+    "migrate:members": "ts-node src/database/migrations/002_workspace_members.ts",
+    "migrate:owners": "ts-node src/database/migrations/003_seed_workspace_owners.ts"
   },
   "keywords": [],
   "author": "",

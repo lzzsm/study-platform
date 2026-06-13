@@ -8,6 +8,7 @@ import goalRouter from "./routes/goals";
 import habitRouter from "./routes/habits";
 import analyticsRouter from "./routes/analytics";
 import userRouter from "./routes/users";
+import workspaceMembersRouter from "./routes/workspaceMembers";
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "./errors/AppError";
 
@@ -26,6 +27,7 @@ app.use("/workspaces/:workspaceId/goals", goalRouter);
 app.use("/workspaces/:workspaceId/habits", habitRouter);
 app.use("/analytics", analyticsRouter);
 app.use("/users", userRouter);
+app.use("/workspaces/:workspaceId/members", workspaceMembersRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {

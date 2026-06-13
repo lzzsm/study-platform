@@ -4,12 +4,46 @@ import { authMiddleware } from "../middleware/auth";
 import { validate } from "../middleware/validate";
 import { AppError } from "../errors/AppError";
 import { createHabitSchema, updateHabitSchema } from "../schemas/habit.schemas";
+import { requireWorkspaceRole } from "../middleware/workspaceAuth";
 
 const router = Router({ mergeParams: true });
 router.use(authMiddleware);
 
+router.get(
+  "/",
+  requireWorkspaceRole("owner", "editor", "viewer"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const workspace_id = Number(req.params.workspaceId);
+      const habits = await habitService.findAll(workspace_id);
+      res.status(200).json(habits);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  "/:id",
+  requireWorkspaceRole("owner", "editor", "viewer"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const workspace_id = Number(req.params.workspaceId);
+      const habit = await habitService.findById(
+        Number(req.params.id),
+        workspace_id,
+      );
+      if (!habit) throw new AppError("Hábito não encontrado.", 404);
+      res.status(200).json(habit);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 router.post(
   "/",
+  requireWorkspaceRole("owner", "editor"),
   validate(createHabitSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -23,32 +57,9 @@ router.post(
   },
 );
 
-router.get("/", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const workspace_id = Number(req.params.workspaceId);
-    const habits = await habitService.findAll(workspace_id);
-    res.status(200).json(habits);
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const workspace_id = Number(req.params.workspaceId);
-    const habit = await habitService.findById(
-      Number(req.params.id),
-      workspace_id,
-    );
-    if (!habit) throw new AppError("Hábito não encontrado.", 404);
-    res.status(200).json(habit);
-  } catch (err) {
-    next(err);
-  }
-});
-
 router.put(
   "/:id",
+  requireWorkspaceRole("owner", "editor"),
   validate(updateHabitSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -68,6 +79,7 @@ router.put(
 
 router.patch(
   "/:id/complete",
+  requireWorkspaceRole("owner", "editor"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await habitService.complete(Number(req.params.id));
@@ -80,6 +92,7 @@ router.patch(
 
 router.delete(
   "/:id",
+  requireWorkspaceRole("owner", "editor"),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const habit = await habitService.remove(Number(req.params.id));

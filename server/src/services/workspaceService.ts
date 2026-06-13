@@ -1,7 +1,22 @@
 import { workspaceRepository } from "../repositories/workspaceRepository";
+import { workspaceMemberRepository } from "../repositories/workspaceMemberRepository";
 
 async function create(name: string, description: string, owner_id: number) {
-  return workspaceRepository.create(name, description, owner_id);
+  const workspace = await workspaceRepository.create(
+    name,
+    description,
+    owner_id,
+  );
+
+  // adiciona o criador como owner na tabela de membros
+  await workspaceMemberRepository.addMember(
+    workspace.id,
+    owner_id,
+    "owner",
+    owner_id,
+  );
+
+  return workspace;
 }
 
 async function update(
