@@ -1,22 +1,35 @@
 import { workspaceRepository } from "../repositories/workspaceRepository";
 import { workspaceMemberRepository } from "../repositories/workspaceMemberRepository";
+import pool from "../database";
 
 async function create(name: string, description: string, owner_id: number) {
-  const workspace = await workspaceRepository.create(
-    name,
-    description,
-    owner_id,
-  );
+  const client = await pool.connect();
 
-  // adiciona o criador como owner na tabela de membros
-  await workspaceMemberRepository.addMember(
-    workspace.id,
-    owner_id,
-    "owner",
-    owner_id,
-  );
+  try {
+    await client.query("BEGIN");
 
-  return workspace;
+    const workspace = await workspaceRepository.create(
+      name,
+      description,
+      owner_id,
+      client,
+    );
+    await workspaceMemberRepository.addMember(
+      workspace.id,
+      owner_id,
+      "owner",
+      owner_id,
+      client,
+    );
+
+    await client.query("COMMIT");
+    return workspace;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 async function update(

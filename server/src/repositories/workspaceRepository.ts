@@ -1,4 +1,5 @@
 import pool from "../database";
+import { PoolClient } from "pg";
 import { Workspace } from "../types/workspace.types";
 
 async function findById(
@@ -32,9 +33,12 @@ async function create(
   name: string,
   description: string,
   owner_id: number,
+  client?: PoolClient,
 ): Promise<Workspace> {
-  const result = await pool.query(
-    "INSERT INTO workspaces (name, description, owner_id) VALUES ($1, $2, $3) RETURNING *",
+  const db = client ?? pool;
+  const result = await db.query(
+    `INSERT INTO workspaces (name, description, owner_id)
+     VALUES ($1, $2, $3) RETURNING *`,
     [name, description, owner_id],
   );
   return result.rows[0];

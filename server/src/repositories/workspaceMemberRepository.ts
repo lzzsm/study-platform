@@ -1,4 +1,5 @@
 import pool from "../database";
+import { PoolClient } from "pg";
 import {
   WorkspaceMember,
   WorkspaceMemberWithUser,
@@ -10,8 +11,10 @@ async function addMember(
   user_id: number,
   role: WorkspaceRole,
   invited_by: number,
+  client?: PoolClient,
 ): Promise<WorkspaceMember> {
-  const result = await pool.query(
+  const db = client ?? pool;
+  const result = await db.query(
     `INSERT INTO workspace_members (workspace_id, user_id, role, invited_by)
      VALUES ($1, $2, $3, $4) RETURNING *`,
     [workspace_id, user_id, role, invited_by],
