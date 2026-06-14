@@ -29,12 +29,12 @@ export function EditWorkspaceDialog({ workspace }: { workspace: Workspace }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
+      <DialogTrigger onClick={(e) => e.stopPropagation()}>
         <Button variant="outline" size="sm">
           Editar
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>Editar workspace</DialogTitle>
         </DialogHeader>

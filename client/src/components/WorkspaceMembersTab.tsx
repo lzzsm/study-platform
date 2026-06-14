@@ -45,7 +45,7 @@ interface Props {
   workspaceId: number;
 }
 
-export function WorkspaceMembers({ workspaceId }: Props) {
+export function WorkspaceMembersTab({ workspaceId }: Props) {
   const { data: members, isLoading } = useWorkspaceMembers(workspaceId);
   const { data: currentUser } = useMe();
   const inviteMember = useInviteMember(workspaceId);
