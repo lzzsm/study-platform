@@ -9,7 +9,8 @@
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "migrate": "ts-node src/database/migrations/001_initial.ts && ts-node src/database/migrations/002_workspace_members.ts",
-    "migrate:owners": "ts-node src/database/migrations/003_seed_workspace_owners.ts"
+    "migrate:owners": "ts-node src/database/migrations/003_seed_workspace_owners.ts",
+    "migrate:members-index": "ts-node src/database/migrations/004_workspace_members_index.ts"
   },
   "keywords": [],
   "author": "",
