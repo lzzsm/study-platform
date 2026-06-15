@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { toast } from "sonner";
+import { isAxiosError } from "axios";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -26,8 +27,12 @@ function LoginPage() {
       const response = await authService.login(data.email, data.password);
       localStorage.setItem("token", response.token);
       navigate("/dashboard");
-    } catch {
-      toast.error("Email ou senha incorretos.");
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.status === 429) {
+        toast.error("Muitas tentativas. Tente novamente em alguns minutos.");
+      } else {
+        toast.error("Email ou senha incorretos.");
+      }
     }
   }
 

@@ -5,6 +5,7 @@ import { AppError } from "../errors/AppError";
 import { userRepository } from "../repositories/userRepository";
 import { validate } from "../middleware/validate";
 import { registerSchema, loginSchema } from "../schemas/auth.schemas";
+import { authRateLimiter } from "../middleware/rateLimiter";
 
 const router = Router();
 
@@ -22,7 +23,7 @@ router.get(
   },
 );
 
-router.post("/register", validate(registerSchema), async (req, res, next) => {
+router.post("/register", authRateLimiter, validate(registerSchema), async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
     const token = await authService.register(name, email, password);
@@ -32,7 +33,7 @@ router.post("/register", validate(registerSchema), async (req, res, next) => {
   }
 });
 
-router.post("/login", validate(loginSchema), async (req, res, next) => {
+router.post("/login", authRateLimiter, validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const token = await authService.login(email, password);

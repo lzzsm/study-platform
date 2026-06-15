@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
 import { toast } from "sonner";
+import { isAxiosError } from "axios";
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -30,8 +31,12 @@ function RegisterPage() {
       );
       localStorage.setItem("token", response.token);
       navigate("/dashboard");
-    } catch {
-      toast.error("Erro ao criar conta. Tente novamente.");
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.status === 429) {
+        toast.error("Muitas tentativas. Tente novamente em alguns minutos.");
+      } else {
+        toast.error("Erro ao criar conta. Tente novamente.");
+      }
     }
   }
 
