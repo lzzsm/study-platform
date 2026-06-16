@@ -25,7 +25,8 @@ function LoginPage() {
   async function onSubmit(data: LoginSchema) {
     try {
       const response = await authService.login(data.email, data.password);
-      localStorage.setItem("token", response.token);
+      localStorage.setItem("accessToken", response.accessToken);
+      localStorage.setItem("refreshToken", response.refreshToken);
       navigate("/dashboard");
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 429) {

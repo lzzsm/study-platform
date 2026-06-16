@@ -23,24 +23,63 @@ router.get(
   },
 );
 
-router.post("/register", authRateLimiter, validate(registerSchema), async (req, res, next) => {
-  try {
-    const { name, email, password } = req.body;
-    const token = await authService.register(name, email, password);
-    res.status(201).json({ token });
-  } catch (err) {
-    next(err);
-  }
-});
+router.post(
+  "/register",
+  authRateLimiter,
+  validate(registerSchema),
+  async (req, res, next) => {
+    try {
+      const { name, email, password } = req.body;
+      const tokens = await authService.register(name, email, password);
+      res.status(201).json(tokens);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
-router.post("/login", authRateLimiter, validate(loginSchema), async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    const token = await authService.login(email, password);
-    res.status(200).json({ token });
-  } catch (err) {
-    next(err);
-  }
-});
+router.post(
+  "/login",
+  authRateLimiter,
+  validate(loginSchema),
+  async (req, res, next) => {
+    try {
+      const { email, password } = req.body;
+      const tokens = await authService.login(email, password);
+      res.status(200).json(tokens);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.post(
+  "/refresh",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken)
+        throw new AppError("Refresh token não fornecido.", 400);
+
+      const tokens = await authService.refresh(refreshToken);
+      res.status(200).json(tokens);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.post(
+  "/logout",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.body;
+      if (refreshToken) await authService.logout(refreshToken);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 export default router;

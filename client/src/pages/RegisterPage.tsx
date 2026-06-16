@@ -29,7 +29,8 @@ function RegisterPage() {
         data.email,
         data.password,
       );
-      localStorage.setItem("token", response.token);
+      localStorage.setItem("accessToken", response.accessToken);
+      localStorage.setItem("refreshToken", response.refreshToken);
       navigate("/dashboard");
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 429) {
