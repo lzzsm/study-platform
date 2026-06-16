@@ -42,7 +42,7 @@ export function TasksChart({ pending, completed }: Props) {
 
   return (
     <div className="relative">
-      <ResponsiveContainer width="100%" height={200}>
+      <ResponsiveContainer width="100%" height={200} debounce={150}>
         <PieChart>
           <Pie
             data={data}

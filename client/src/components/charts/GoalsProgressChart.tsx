@@ -85,7 +85,7 @@ export function GoalsProgressChart({ goals }: Props) {
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={Math.max(180, goals.length * 44)}>
+    <ResponsiveContainer width="100%" height={Math.max(180, goals.length * 44)} debounce={150}>
       <BarChart
         data={data}
         layout="vertical"
