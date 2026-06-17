@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { userRepository } from "../repositories/userRepository";
 import { AppError } from "../errors/AppError";
+import { refreshTokenRepository } from "../repositories/refreshTokenRepository";
 
 async function getProfile(id: number) {
   const user = await userRepository.findPublicById(id);
@@ -28,10 +29,33 @@ async function updatePassword(
   if (!user) throw new AppError("Usuário não encontrado.", 404);
 
   const valid = await bcrypt.compare(currentPassword, user.password);
-  if (!valid) throw new AppError("Senha atual incorreta.", 401);
+  if (!valid) throw new AppError("Senha atual incorreta.", 422);
 
   const hashed = await bcrypt.hash(newPassword, 10);
   await userRepository.updatePassword(id, hashed);
 }
 
-export const userService = { getProfile, updateProfile, updatePassword };
+async function logoutAll(id: number): Promise<void> {
+  await refreshTokenRepository.removeAllByUser(id);
+}
+
+async function deleteAccount(
+  id: number,
+  currentPassword: string,
+): Promise<void> {
+  const user = await userRepository.findById(id);
+  if (!user) throw new AppError("Usuário não encontrado.", 404);
+
+  const valid = await bcrypt.compare(currentPassword, user.password);
+  if (!valid) throw new AppError("Senha incorreta.", 422);
+
+  await userRepository.remove(id);
+}
+
+export const userService = {
+  getProfile,
+  updateProfile,
+  updatePassword,
+  logoutAll,
+  deleteAccount,
+};

@@ -21,4 +21,12 @@ export const userService = {
   }) => {
     await api.put("/users/me/password", payload);
   },
+
+  logoutAll: async () => {
+    await api.post("/users/me/logout-all");
+  },
+
+  deleteAccount: async (currentPassword: string) => {
+    await api.delete("/users/me", { data: { currentPassword } });
+  },
 };

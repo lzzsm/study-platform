@@ -4,6 +4,7 @@ import { ProfileHeader } from "@/components/ProfileHeader";
 import { EditProfileForm } from "@/components/EditProfileForm";
 import { ChangePasswordForm } from "@/components/ChangePasswordForm";
 import { DashboardPageSkeleton } from "@/components/skeletons/DashboardPageSkeleton";
+import { DangerZone } from "@/components/DangerZone";
 
 function ProfilePage() {
   const { data: user, isLoading } = useMe();
@@ -33,6 +34,10 @@ function ProfilePage() {
       <Separator />
 
       <ChangePasswordForm />
+
+      <Separator />
+      
+      <DangerZone />
     </div>
   );
 }

@@ -63,6 +63,14 @@ async function updatePassword(
     [hashedPassword, id],
   );
 }
+
+async function remove(id: number): Promise<void> {
+  await pool.query(
+    `DELETE FROM users WHERE id = $1`,
+    [id],
+  );
+}
+
 export const userRepository = {
   findById,
   findPublicById,
@@ -70,4 +78,5 @@ export const userRepository = {
   create,
   updateProfile,
   updatePassword,
+  remove,
 };

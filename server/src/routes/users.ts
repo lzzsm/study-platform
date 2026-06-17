@@ -6,6 +6,7 @@ import {
   updateProfileSchema,
   updatePasswordSchema,
 } from "../schemas/user.schemas";
+import { AppError } from "../errors/AppError";
 
 const router = Router();
 router.use(authMiddleware);
@@ -49,6 +50,32 @@ router.put(
         currentPassword,
         newPassword,
       );
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.post(
+  "/me/logout-all",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await userService.logoutAll((req as any).user.id);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.delete(
+  "/me",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { currentPassword } = req.body;
+      if (!currentPassword) throw new AppError("Senha obrigatória.", 400);
+      await userService.deleteAccount((req as any).user.id, currentPassword);
       res.status(204).send();
     } catch (err) {
       next(err);
