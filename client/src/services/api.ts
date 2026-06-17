@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 // Pedaço 1 — injeta access token em toda requisição
@@ -20,7 +20,7 @@ async function refreshAccessToken(): Promise<string> {
   const refreshToken = localStorage.getItem("refreshToken");
   if (!refreshToken) throw new Error("Sem refresh token.");
 
-  const { data } = await axios.post("http://localhost:3000/auth/refresh", {
+  const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, {
     refreshToken,
   });
 

@@ -25,7 +25,7 @@ const httpLogger = pinoHttp({
 });
 
 const app = express();
-const PORT: number = 3000;
+const PORT: number = Number(process.env.PORT) || 3000;
 
 app.use(cors());
 app.use(express.json());
