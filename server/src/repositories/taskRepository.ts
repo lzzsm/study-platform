@@ -1,5 +1,6 @@
 import pool from "../database";
 import { Task } from "../types/task.types";
+import { PaginatedResult } from "../types/pagination.types";
 
 async function findById(
   id: number,
@@ -14,10 +15,10 @@ async function findById(
 
 async function findAll(
   workspace_id: number,
-  page: number = 1,
-  limit: number = 10,
+  page: number,
+  limit: number,
   status?: "pending" | "completed",
-): Promise<{ tasks: Task[]; total: number }> {
+): Promise<PaginatedResult<Task>> {
   const offset = (page - 1) * limit;
   const conditions = ["workspace_id = $1", "deleted_at IS NULL"];
   const params: unknown[] = [workspace_id];
@@ -41,8 +42,9 @@ async function findAll(
   );
 
   return {
-    tasks: tasksResult.rows,
+    items: tasksResult.rows,
     total: Number(countResult.rows[0].total),
+    page,
   };
 }
 

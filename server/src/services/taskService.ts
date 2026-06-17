@@ -1,4 +1,6 @@
 import { taskRepository } from "../repositories/taskRepository";
+import { PaginatedResult } from "../types/pagination.types";
+import { Task } from "../types/task.types";
 
 async function create(
   title: string,
@@ -21,7 +23,7 @@ async function findAll(
   page = 1,
   limit = 10,
   status?: "pending" | "completed",
-) {
+): Promise<PaginatedResult<Task>> {
   return taskRepository.findAll(workspace_id, page, limit, status);
 }
 

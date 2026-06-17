@@ -2,16 +2,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { taskService } from "@/services/task.service";
 import { toast } from "sonner";
 import type { Task } from "@/types/task.types";
+import type { PaginatedResult } from "@/types/pagination.types";
 
 export function useTasks(
   workspaceId: number,
   page = 1,
   status?: "pending" | "completed",
 ) {
-  return useQuery({
+  return useQuery<PaginatedResult<Task>>({
     queryKey: ["workspaces", workspaceId, "tasks", page, status],
     queryFn: () => taskService.getAll(workspaceId, page, 10, status),
-    staleTime: 1000 * 30, // 30 seconds
+    staleTime: 1000 * 30,
   });
 }
 
@@ -82,11 +83,11 @@ export function useToggleTask(workspaceId: number) {
 
       queryClient.setQueryData(
         ["workspaces", workspaceId, "tasks"],
-        (old: { tasks: Task[]; total: number } | undefined) => {
+        (old: PaginatedResult<Task> | undefined) => {
           if (!old) return old;
           return {
             ...old,
-            tasks: old.tasks.map((task: Task) =>
+            items: old.items.map((task: Task) =>
               task.id === id ? { ...task, completed } : task,
             ),
           };

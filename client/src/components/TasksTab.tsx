@@ -54,7 +54,7 @@ export function TasksTab({ workspaceId }: TasksTabProps) {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
 
-  const tasks = taskData?.tasks ?? [];
+  const tasks = taskData?.items ?? [];
   const totalPages = Math.ceil((taskData?.total ?? 0) / 10);
 
   function handleCreateTask() {
