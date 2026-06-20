@@ -28,8 +28,8 @@ async function remove(id: number) {
   return habitRepository.remove(id);
 }
 
-async function findAll(workspace_id: number) {
-  return habitRepository.findAll(workspace_id);
+async function findAll(workspace_id: number, page = 1, limit = 10) {
+  return habitRepository.findAll(workspace_id, page, limit);
 }
 
 async function findById(id: number, workspace_id: number) {

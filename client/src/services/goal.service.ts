@@ -1,8 +1,10 @@
 import api from "./api";
 
 export const goalService = {
-  getAll: async (workspaceId: number) => {
-    const { data } = await api.get(`/workspaces/${workspaceId}/goals`);
+  getAll: async (workspaceId: number, page = 1, limit = 10) => {
+    const { data } = await api.get(`/workspaces/${workspaceId}/goals`, {
+      params: { page, limit },
+    });
     return data;
   },
 

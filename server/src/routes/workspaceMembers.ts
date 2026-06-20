@@ -20,8 +20,14 @@ const updateRoleSchema = z.object({
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const workspace_id = Number(req.params.workspaceId);
-    const members = await workspaceMemberService.findMembers(workspace_id);
-    res.json(members);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const members = await workspaceMemberService.findMembers(
+      workspace_id,
+      page,
+      limit,
+    );
+    res.status(200).json(members);
   } catch (err) {
     next(err);
   }

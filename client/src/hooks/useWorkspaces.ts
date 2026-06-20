@@ -1,12 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { workspaceService } from "@/services/workspace.service";
+import type { Workspace } from "@/types/workspace.types";
+import type { PaginatedResult } from "@/types/pagination.types";
 import { toast } from "sonner";
 
-export function useWorkspaces() {
-  return useQuery({
-    queryKey: ["workspaces"],
-    queryFn: workspaceService.getAll,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+export function useWorkspaces(page = 1) {
+  return useQuery<PaginatedResult<Workspace>>({
+    queryKey: ["workspaces", page],
+    queryFn: () => workspaceService.getAll(page),
+    staleTime: 1000 * 60 * 5,
   });
 }
 

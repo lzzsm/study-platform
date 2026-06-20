@@ -33,7 +33,9 @@ router.post(
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const owner_id = (req as any).user.id;
-    const workspaces = await workspaceService.findAll(owner_id);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const workspaces = await workspaceService.findAll(owner_id, page, limit);
     res.status(200).json(workspaces);
   } catch (err) {
     next(err);

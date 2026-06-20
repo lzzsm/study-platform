@@ -2,11 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { workspaceMemberService } from "@/services/workspaceMember.service";
 import type { WorkspaceRole } from "@/types/workspaceMember.types";
 import { toast } from "sonner";
+import type { PaginatedResult } from "@/types/pagination.types";
+import type { WorkspaceMember } from "@/types/workspaceMember.types";
 
-export function useWorkspaceMembers(workspaceId: number) {
-  return useQuery({
-    queryKey: ["workspaces", workspaceId, "members"],
-    queryFn: () => workspaceMemberService.getMembers(workspaceId),
+export function useWorkspaceMembers(workspaceId: number, page = 1) {
+  return useQuery<PaginatedResult<WorkspaceMember>>({
+    queryKey: ["workspaces", workspaceId, "members", page],
+    queryFn: () => workspaceMemberService.getMembers(workspaceId, page),
     staleTime: 1000 * 60 * 2,
   });
 }

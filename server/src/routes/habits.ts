@@ -15,7 +15,9 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const workspace_id = Number(req.params.workspaceId);
-      const habits = await habitService.findAll(workspace_id);
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      const habits = await habitService.findAll(workspace_id, page, limit);
       res.status(200).json(habits);
     } catch (err) {
       next(err);

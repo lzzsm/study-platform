@@ -45,8 +45,8 @@ async function remove(id: number, owner_id: number) {
   return workspaceRepository.remove(id, owner_id);
 }
 
-async function findAll(owner_id: number) {
-  return workspaceRepository.findAll(owner_id);
+async function findAll(owner_id: number, page = 1, limit = 10) {
+  return workspaceRepository.findAll(owner_id, page, limit);
 }
 
 async function findById(id: number, owner_id: number) {

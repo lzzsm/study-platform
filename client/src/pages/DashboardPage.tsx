@@ -12,7 +12,9 @@ import { DashboardPageSkeleton } from "@/components/skeletons/DashboardPageSkele
 
 function DashboardPage() {
   const { data: user, isLoading: loadingUser } = useMe();
-  const { data: workspaces, isLoading: loadingWorkspaces } = useWorkspaces();
+  const { data: workspacesData, isLoading: loadingWorkspaces } =
+    useWorkspaces();
+  const workspacesList = workspacesData?.items ?? [];
   const { data: analytics, isLoading: loadingAnalytics } = useAnalytics();
   const completeHabit = useCompleteHabitFromDashboard();
   const { tabs } = useTabsStore();
@@ -22,10 +24,8 @@ function DashboardPage() {
 
   const recentWorkspaces =
     tabs.length > 0
-      ? (workspaces?.filter((w: Workspace) =>
-          tabs.some((t) => t.id === w.id),
-        ) ?? [])
-      : (workspaces?.slice(0, 3) ?? []);
+      ? workspacesList.filter((w: Workspace) => tabs.some((t) => t.id === w.id))
+      : workspacesList.slice(0, 3);
 
   return (
     <div className="space-y-8">

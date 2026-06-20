@@ -1,6 +1,7 @@
 import pool from "../database";
 import { PoolClient } from "pg";
 import { Workspace } from "../types/workspace.types";
+import { PaginatedResult } from "../types/pagination.types";
 
 async function findById(
   id: number,
@@ -17,16 +18,36 @@ async function findById(
   return result.rows[0] || null;
 }
 
-async function findAll(owner_id: number): Promise<Workspace[]> {
+async function findAll(
+  owner_id: number,
+  page: number = 1,
+  limit: number = 10,
+): Promise<PaginatedResult<Workspace>> {
+  const offset = (page - 1) * limit;
+
+  const countResult = await pool.query(
+    `SELECT COUNT(DISTINCT w.id) AS total FROM workspaces w
+     LEFT JOIN workspace_members wm ON wm.workspace_id = w.id
+     WHERE (w.owner_id = $1 OR wm.user_id = $1)
+       AND w.deleted_at IS NULL`,
+    [owner_id],
+  );
+
   const result = await pool.query(
     `SELECT DISTINCT w.* FROM workspaces w
      LEFT JOIN workspace_members wm ON wm.workspace_id = w.id
      WHERE (w.owner_id = $1 OR wm.user_id = $1)
        AND w.deleted_at IS NULL
-     ORDER BY w.created_at DESC`,
-    [owner_id],
+     ORDER BY w.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [owner_id, limit, offset],
   );
-  return result.rows;
+
+  return {
+    items: result.rows,
+    total: Number(countResult.rows[0].total),
+    page,
+  };
 }
 
 async function create(

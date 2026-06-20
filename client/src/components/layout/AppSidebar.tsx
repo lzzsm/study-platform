@@ -18,8 +18,10 @@ import { useLogout } from "@/hooks/useLogout";
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: workspaces } = useWorkspaces();
+  const { data } = useWorkspaces();
   const logout = useLogout();
+
+  const workspaces = data?.items ?? [];
 
   return (
     <Sidebar>
@@ -63,12 +65,12 @@ export function AppSidebar() {
           <SidebarGroupLabel>Workspaces</SidebarGroupLabel>
           <SidebarGroupContent className="flex-1 min-h-0 overflow-y-auto">
             <SidebarMenu>
-              {workspaces?.length === 0 ? (
+              {workspaces.length === 0 ? (
                 <p className="text-xs text-muted-foreground px-2 py-1">
                   Nenhum workspace criado ainda.
                 </p>
               ) : (
-                workspaces?.map((workspace: Workspace) => (
+                workspaces.map((workspace: Workspace) => (
                   <SidebarMenuItem key={workspace.id}>
                     <SidebarMenuButton
                       onClick={() => navigate(`/workspaces/${workspace.id}`)}

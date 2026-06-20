@@ -1,8 +1,8 @@
 import api from "./api";
 
 export const workspaceService = {
-  getAll: async () => {
-    const { data } = await api.get("/workspaces");
+  getAll: async (page = 1, limit = 10) => {
+    const { data } = await api.get("/workspaces", { params: { page, limit } });
     return data;
   },
 

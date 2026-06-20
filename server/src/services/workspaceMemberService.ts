@@ -104,8 +104,8 @@ async function updateRole(
   );
 }
 
-async function findMembers(workspace_id: number) {
-  return workspaceMemberRepository.findMembers(workspace_id);
+async function findMembers(workspace_id: number, page = 1, limit = 10) {
+  return workspaceMemberRepository.findMembers(workspace_id, page, limit);
 }
 
 async function findMembership(workspace_id: number, user_id: number) {

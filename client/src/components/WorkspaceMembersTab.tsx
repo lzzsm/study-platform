@@ -31,6 +31,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { UserPlus, Trash2, User } from "lucide-react";
 import { MemberListSkeleton } from "@/components/skeletons/MemberListSkeleton";
 import { useMe } from "@/hooks/useMe";
@@ -46,7 +53,8 @@ interface Props {
 }
 
 export function WorkspaceMembersTab({ workspaceId }: Props) {
-  const { data: members, isLoading } = useWorkspaceMembers(workspaceId);
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useWorkspaceMembers(workspaceId, page);
   const { data: currentUser } = useMe();
   const inviteMember = useInviteMember(workspaceId);
   const updateRole = useUpdateMemberRole(workspaceId);
@@ -55,8 +63,10 @@ export function WorkspaceMembersTab({ workspaceId }: Props) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"editor" | "viewer">("viewer");
 
-  // verifica se o usuário atual é owner
-  const currentMember = members?.find(
+  const members = data?.items ?? [];
+  const totalPages = Math.ceil((data?.total ?? 0) / 10);
+
+  const currentMember = members.find(
     (m: WorkspaceMember) => m.user_id === currentUser?.id,
   );
   const isOwner = currentMember?.role === "owner";
@@ -132,10 +142,9 @@ export function WorkspaceMembersTab({ workspaceId }: Props) {
 
       {/* ── LISTA DE MEMBROS ── */}
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold">
-          Membros ({members?.length ?? 0})
-        </h3>
-        {members?.map((member: WorkspaceMember) => (
+        <h3 className="text-sm font-semibold">Membros ({data?.total ?? 0})</h3>
+
+        {members.map((member: WorkspaceMember) => (
           <div
             key={member.id}
             className="flex items-center justify-between p-3 border rounded-lg"
@@ -154,7 +163,6 @@ export function WorkspaceMembersTab({ workspaceId }: Props) {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Alterar papel — só owner pode, e não pode alterar o próprio owner */}
               {isOwner && member.role !== "owner" ? (
                 <Select
                   value={member.role}
@@ -179,7 +187,6 @@ export function WorkspaceMembersTab({ workspaceId }: Props) {
                 </span>
               )}
 
-              {/* Remover — só owner pode, e não pode remover o próprio owner */}
               {isOwner && member.role !== "owner" && (
                 <AlertDialog>
                   <AlertDialogTrigger>
@@ -208,6 +215,44 @@ export function WorkspaceMembersTab({ workspaceId }: Props) {
             </div>
           </div>
         ))}
+
+        {members.length === 0 && (
+          <p className="text-muted-foreground text-sm">Nenhum membro ainda.</p>
+        )}
+
+        {totalPages > 1 && (
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((p) => p - 1)}
+                  aria-disabled={page === 1}
+                  className={
+                    page === 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+              <PaginationItem>
+                <span className="text-sm text-muted-foreground px-4">
+                  Página {page} de {totalPages}
+                </span>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage((p) => p + 1)}
+                  aria-disabled={page === totalPages}
+                  className={
+                    page === totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
       </div>
     </div>
   );

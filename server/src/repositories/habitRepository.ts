@@ -1,5 +1,6 @@
 import pool from "../database";
 import { Habit, HabitLog } from "../types/habit.types";
+import { PaginatedResult } from "../types/pagination.types";
 
 async function findById(
   id: number,
@@ -12,12 +13,32 @@ async function findById(
   return result.rows[0] || null;
 }
 
-async function findAll(workspace_id: number): Promise<Habit[]> {
-  const result = await pool.query(
-    "SELECT * FROM habits WHERE workspace_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC",
+async function findAll(
+  workspace_id: number,
+  page: number = 1,
+  limit: number = 10,
+): Promise<PaginatedResult<Habit>> {
+  const offset = (page - 1) * limit;
+
+  const countResult = await pool.query(
+    `SELECT COUNT(*) AS total FROM habits
+     WHERE workspace_id = $1 AND deleted_at IS NULL`,
     [workspace_id],
   );
-  return result.rows;
+
+  const result = await pool.query(
+    `SELECT * FROM habits
+     WHERE workspace_id = $1 AND deleted_at IS NULL
+     ORDER BY created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [workspace_id, limit, offset],
+  );
+
+  return {
+    items: result.rows,
+    total: Number(countResult.rows[0].total),
+    page,
+  };
 }
 
 async function create(

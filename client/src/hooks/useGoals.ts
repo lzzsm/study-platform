@@ -2,12 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { goalService } from "@/services/goal.service";
 import { toast } from "sonner";
 import type { Goal } from "@/types/goal.types";
+import type { PaginatedResult } from "@/types/pagination.types";
 
-export function useGoals(workspaceId: number) {
-  return useQuery({
-    queryKey: ["workspaces", workspaceId, "goals"],
-    queryFn: () => goalService.getAll(workspaceId),
-    staleTime: 1000 * 60 * 2, // 2 minutes
+export function useGoals(workspaceId: number, page = 1) {
+  return useQuery<PaginatedResult<Goal>>({
+    queryKey: ["workspaces", workspaceId, "goals", page],
+    queryFn: () => goalService.getAll(workspaceId, page),
+    staleTime: 1000 * 60 * 2,
   });
 }
 
@@ -100,12 +101,15 @@ export function useToggleGoal(workspaceId: number) {
       ]);
 
       queryClient.setQueryData(
-        ["workspaces", workspaceId, "goals"],
-        (old: Goal[] | undefined) => {
+        ["workspaces", workspaceId, "goals", 1],
+        (old: PaginatedResult<Goal> | undefined) => {
           if (!old) return old;
-          return old.map((goal: Goal) =>
-            goal.id === id ? { ...goal, completed } : goal,
-          );
+          return {
+            ...old,
+            items: old.items.map((goal: Goal) =>
+              goal.id === id ? { ...goal, completed } : goal,
+            ),
+          };
         },
       );
 

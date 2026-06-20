@@ -2,12 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { habitService } from "@/services/habit.service";
 import { toast } from "sonner";
 import type { Habit } from "@/types/habit.types";
+import type { PaginatedResult } from "@/types/pagination.types";
 
-export function useHabits(workspaceId: number) {
-  return useQuery({
-    queryKey: ["workspaces", workspaceId, "habits"],
-    queryFn: () => habitService.getAll(workspaceId),
-    staleTime: 1000 * 60 * 2, // 2 minutes
+export function useHabits(workspaceId: number, page = 1) {
+  return useQuery<PaginatedResult<Habit>>({
+    queryKey: ["workspaces", workspaceId, "habits", page],
+    queryFn: () => habitService.getAll(workspaceId, page),
+    staleTime: 1000 * 60 * 2,
   });
 }
 
@@ -51,12 +52,15 @@ export function useCompleteHabit(workspaceId: number) {
       ]);
 
       queryClient.setQueryData(
-        ["workspaces", workspaceId, "habits"],
-        (old: Habit[] | undefined) => {
+        ["workspaces", workspaceId, "habits", 1],
+        (old: PaginatedResult<Habit> | undefined) => {
           if (!old) return old;
-          return old.map((habit: Habit) =>
-            habit.id === id ? { ...habit, streak: habit.streak + 1 } : habit,
-          );
+          return {
+            ...old,
+            items: old.items.map((habit: Habit) =>
+              habit.id === id ? { ...habit, streak: habit.streak + 1 } : habit,
+            ),
+          };
         },
       );
 

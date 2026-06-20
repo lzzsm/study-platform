@@ -2,8 +2,10 @@ import api from "./api";
 import type { WorkspaceRole } from "@/types/workspaceMember.types";
 
 export const workspaceMemberService = {
-  getMembers: async (workspaceId: number) => {
-    const { data } = await api.get(`/workspaces/${workspaceId}/members`);
+  getMembers: async (workspaceId: number, page = 1, limit = 10) => {
+    const { data } = await api.get(`/workspaces/${workspaceId}/members`, {
+      params: { page, limit },
+    });
     return data;
   },
 

@@ -5,6 +5,7 @@ import {
   WorkspaceMemberWithUser,
   WorkspaceRole,
 } from "../types/workspaceMember.types";
+import { PaginatedResult } from "../types/pagination.types";
 
 async function addMember(
   workspace_id: number,
@@ -47,16 +48,32 @@ async function updateRole(
 
 async function findMembers(
   workspace_id: number,
-): Promise<WorkspaceMemberWithUser[]> {
+  page: number = 1,
+  limit: number = 10,
+): Promise<PaginatedResult<WorkspaceMemberWithUser>> {
+  const offset = (page - 1) * limit;
+
+  const countResult = await pool.query(
+    `SELECT COUNT(*) AS total FROM workspace_members
+     WHERE workspace_id = $1`,
+    [workspace_id],
+  );
+
   const result = await pool.query(
     `SELECT wm.*, u.name, u.email, u.avatar_url
      FROM workspace_members wm
      JOIN users u ON u.id = wm.user_id
      WHERE wm.workspace_id = $1
-     ORDER BY wm.created_at ASC`,
-    [workspace_id],
+     ORDER BY wm.created_at ASC
+     LIMIT $2 OFFSET $3`,
+    [workspace_id, limit, offset],
   );
-  return result.rows;
+
+  return {
+    items: result.rows,
+    total: Number(countResult.rows[0].total),
+    page,
+  };
 }
 
 async function findMembership(
