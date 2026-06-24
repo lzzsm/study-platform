@@ -1,3 +1,4 @@
+import type { PublicProfile, UserSearchResult } from "@/types/user.types";
 import api from "./api";
 
 export const userService = {
@@ -28,5 +29,15 @@ export const userService = {
 
   deleteAccount: async (currentPassword: string) => {
     await api.delete("/users/me", { data: { currentPassword } });
+  },
+
+  search: async (query: string): Promise<UserSearchResult[]> => {
+    const { data } = await api.get("/users/search", { params: { q: query } });
+    return data;
+  },
+
+  getPublicProfile: async (id: number): Promise<PublicProfile> => {
+    const { data } = await api.get(`/users/${id}/profile`);
+    return data;
   },
 };

@@ -5,6 +5,8 @@ import DashboardPage from "./pages/DashboardPage";
 import WorkspacePage from "./pages/WorkspacePage";
 import WorkspacesPage from "./pages/WorkspacesPage";
 import ProfilePage from "./pages/ProfilePage";
+import SearchPage from "./pages/SearchPage";
+import PublicProfilePage from "./pages/PublicProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import AppLayout from "./components/layout/AppLayout";
@@ -64,6 +66,26 @@ function App() {
           <ProtectedRoute>
             <AppLayout>
               <ProfilePage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/search"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <SearchPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users/:id"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <PublicProfilePage />
             </AppLayout>
           </ProtectedRoute>
         }

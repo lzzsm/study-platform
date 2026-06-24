@@ -1,4 +1,4 @@
-import { Home, BookOpen, Settings, LogOut, User } from "lucide-react";
+import { Home, BookOpen, Settings, LogOut, User, Search } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -46,6 +46,15 @@ export function AppSidebar() {
                 >
                   <User />
                   <span>Perfil</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/search")}
+                  isActive={location.pathname === "/search"}
+                >
+                  <Search />
+                  <span>Buscar usuários</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>

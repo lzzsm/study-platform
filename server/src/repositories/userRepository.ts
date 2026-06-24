@@ -65,10 +65,29 @@ async function updatePassword(
 }
 
 async function remove(id: number): Promise<void> {
-  await pool.query(
-    `DELETE FROM users WHERE id = $1`,
+  await pool.query(`DELETE FROM users WHERE id = $1`, [id]);
+}
+
+async function search(query: string) {
+  const result = await pool.query(
+    `SELECT id, name, avatar_url, bio, created_at
+     FROM users
+     WHERE name ILIKE $1 OR email ILIKE $1
+     ORDER BY name ASC
+     LIMIT 20`,
+    [`%${query}%`],
+  );
+  return result.rows;
+}
+
+async function findPublicProfile(id: number) {
+  const result = await pool.query(
+    `SELECT id, name, avatar_url, bio, created_at
+     FROM users
+     WHERE id = $1`,
     [id],
   );
+  return result.rows[0] || null;
 }
 
 export const userRepository = {
@@ -79,4 +98,6 @@ export const userRepository = {
   updateProfile,
   updatePassword,
   remove,
+  search,
+  findPublicProfile,
 };

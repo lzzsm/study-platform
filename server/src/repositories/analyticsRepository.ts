@@ -95,10 +95,67 @@ async function getGoalStats(user_id: number) {
   return result.rows[0];
 }
 
+async function getPublicStats(user_id: number) {
+  const tasksResult = await pool.query(
+    `SELECT COUNT(*) FILTER (WHERE t.completed = true) AS completed_tasks
+     FROM tasks t
+     JOIN workspaces w ON w.id = t.workspace_id
+     LEFT JOIN workspace_members wm ON wm.workspace_id = w.id
+     WHERE (w.owner_id = $1 OR wm.user_id = $1)
+       AND t.deleted_at IS NULL
+       AND w.deleted_at IS NULL`,
+    [user_id],
+  );
+
+  const streakResult = await pool.query(
+    `SELECT COALESCE(MAX(h.streak), 0) AS best_streak
+     FROM habits h
+     JOIN workspaces w ON w.id = h.workspace_id
+     LEFT JOIN workspace_members wm ON wm.workspace_id = w.id
+     WHERE (w.owner_id = $1 OR wm.user_id = $1)
+       AND h.deleted_at IS NULL
+       AND w.deleted_at IS NULL`,
+    [user_id],
+  );
+
+  const goalsResult = await pool.query(
+    `SELECT COUNT(*) FILTER (WHERE
+        (g.type = 'qualitative' AND g.completed = true) OR
+        (g.type = 'quantitative' AND g.current_value >= g.target_value)
+      ) AS completed_goals
+     FROM goals g
+     JOIN workspaces w ON w.id = g.workspace_id
+     LEFT JOIN workspace_members wm ON wm.workspace_id = w.id
+     WHERE (w.owner_id = $1 OR wm.user_id = $1)
+       AND g.deleted_at IS NULL
+       AND w.deleted_at IS NULL`,
+    [user_id],
+  );
+
+  const habitsResult = await pool.query(
+    `SELECT COUNT(*) AS active_habits
+     FROM habits h
+     JOIN workspaces w ON w.id = h.workspace_id
+     LEFT JOIN workspace_members wm ON wm.workspace_id = w.id
+     WHERE (w.owner_id = $1 OR wm.user_id = $1)
+       AND h.deleted_at IS NULL
+       AND w.deleted_at IS NULL`,
+    [user_id],
+  );
+
+  return {
+    completedTasks: Number(tasksResult.rows[0].completed_tasks),
+    bestStreak: Number(streakResult.rows[0].best_streak),
+    completedGoals: Number(goalsResult.rows[0].completed_goals),
+    activeHabits: Number(habitsResult.rows[0].active_habits),
+  };
+}
+
 export const analyticsRepository = {
   getTaskStats,
   getPendingHabitsToday,
   getTopGoals,
   getGoalStats,
   getBestStreak,
+  getPublicStats,
 };

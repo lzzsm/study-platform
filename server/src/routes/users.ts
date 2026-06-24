@@ -7,6 +7,8 @@ import {
   updatePasswordSchema,
 } from "../schemas/user.schemas";
 import { AppError } from "../errors/AppError";
+import { analyticsService } from "../services/analyticsService";
+import { userRepository } from "../repositories/userRepository";
 
 const router = Router();
 router.use(authMiddleware);
@@ -19,6 +21,41 @@ router.get("/me", async (req: Request, res: Response, next: NextFunction) => {
     next(err);
   }
 });
+
+router.get(
+  "/search",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.trim().length < 2) {
+        res
+          .status(400)
+          .json({ error: "Query deve ter pelo menos 2 caracteres." });
+        return;
+      }
+      const users = await userRepository.search(query.trim());
+      res.json(users);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  "/:id/profile",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = Number(req.params.id);
+      const user = await userRepository.findPublicProfile(id);
+      if (!user) throw new AppError("Usuário não encontrado.", 404);
+
+      const stats = await analyticsService.getPublicStats(id);
+      res.json({ ...user, stats });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 router.put(
   "/me",

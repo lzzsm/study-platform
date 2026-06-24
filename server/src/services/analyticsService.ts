@@ -30,4 +30,8 @@ async function getAnalytics(owner_id: number) {
   };
 }
 
-export const analyticsService = { getAnalytics };
+async function getPublicStats(user_id: number) {
+  return analyticsRepository.getPublicStats(user_id);
+}
+
+export const analyticsService = { getAnalytics, getPublicStats };
