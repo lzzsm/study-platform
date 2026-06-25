@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, User, ArrowRight } from "lucide-react";
 import type { UserSearchResult } from "@/types/user.types";
+import { useDebounce } from "@/hooks/useDebounce";
 
 function SearchPage() {
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 300);
   const navigate = useNavigate();
-  const { data: results, isLoading } = useUserSearch(query);
+  const { data: results, isLoading } = useUserSearch(debouncedQuery);
 
   return (
     <div className="max-w-xl mx-auto space-y-8 pt-8">
