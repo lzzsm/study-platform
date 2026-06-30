@@ -1,4 +1,12 @@
-import { Home, BookOpen, Settings, LogOut, User, Search } from "lucide-react";
+import {
+  Home,
+  BookOpen,
+  Settings,
+  LogOut,
+  User,
+  Search,
+  Mail,
+} from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -14,6 +22,7 @@ import {
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import type { Workspace } from "@/types/workspace.types";
 import { useLogout } from "@/hooks/useLogout";
+import { usePendingInvites } from "@/hooks/useInvites";
 
 export function AppSidebar() {
   const navigate = useNavigate();
@@ -21,6 +30,8 @@ export function AppSidebar() {
   const { data } = useWorkspaces();
   const logout = useLogout();
 
+  const { data: invites } = usePendingInvites();
+  const pendingCount = invites?.length ?? 0;
   const workspaces = data?.items ?? [];
 
   return (
@@ -55,6 +66,22 @@ export function AppSidebar() {
                 >
                   <Search />
                   <span>Buscar usuários</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/invites")}
+                  isActive={location.pathname === "/invites"}
+                >
+                  <div className="relative">
+                    <Mail />
+                    {pendingCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 size-4 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
+                        {pendingCount > 9 ? "9+" : pendingCount}
+                      </span>
+                    )}
+                  </div>
+                  <span>Convites</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>

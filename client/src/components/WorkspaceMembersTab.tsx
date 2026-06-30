@@ -1,14 +1,19 @@
 import { useState } from "react";
 import {
   useWorkspaceMembers,
-  useInviteMember,
   useUpdateMemberRole,
   useRemoveMember,
 } from "@/hooks/useWorkspaceMembers";
+import {
+  useInviteMember,
+  useWorkspacePendingInvites,
+  useCancelInvite,
+} from "@/hooks/useInvites";
 import type {
   WorkspaceMember,
   WorkspaceRole,
 } from "@/types/workspaceMember.types";
+import type { WorkspaceInviteWithDetails } from "@/types/workspaceInvite.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,14 +27,12 @@ import {
 } from "@/components/ui/select";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   Pagination,
@@ -38,7 +41,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { UserPlus, Trash2, User } from "lucide-react";
+import { UserPlus, Trash2, User, Clock, X } from "lucide-react";
 import { MemberListSkeleton } from "@/components/skeletons/MemberListSkeleton";
 import { useMe } from "@/hooks/useMe";
 
@@ -54,18 +57,24 @@ interface Props {
 
 export function WorkspaceMembersTab({ workspaceId }: Props) {
   const [page, setPage] = useState(1);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"editor" | "viewer">("viewer");
+  const [removingMemberId, setRemovingMemberId] = useState<number | null>(null);
+  const [cancellingInviteId, setCancellingInviteId] = useState<number | null>(
+    null,
+  );
+
   const { data, isLoading } = useWorkspaceMembers(workspaceId, page);
+  const { data: pendingInvites } = useWorkspacePendingInvites(workspaceId);
   const { data: currentUser } = useMe();
+
   const inviteMember = useInviteMember(workspaceId);
   const updateRole = useUpdateMemberRole(workspaceId);
   const removeMember = useRemoveMember(workspaceId);
-
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"editor" | "viewer">("viewer");
+  const cancelInvite = useCancelInvite(workspaceId);
 
   const members = data?.items ?? [];
   const totalPages = Math.ceil((data?.total ?? 0) / 10);
-
   const currentMember = members.find(
     (m: WorkspaceMember) => m.user_id === currentUser?.id,
   );
@@ -140,6 +149,47 @@ export function WorkspaceMembersTab({ workspaceId }: Props) {
         </div>
       )}
 
+      {/* ── CONVITES PENDENTES ── */}
+      {isOwner && pendingInvites && pendingInvites.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <Clock className="size-4" />
+            Convites pendentes ({pendingInvites.length})
+          </h3>
+          {pendingInvites.map((invite: WorkspaceInviteWithDetails) => (
+            <div
+              key={invite.id}
+              className="flex items-center justify-between p-3 border border-dashed rounded-lg"
+            >
+              <div className="flex items-center gap-3">
+                <Avatar className="size-8">
+                  <AvatarFallback>
+                    <User className="size-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Convite enviado
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {roleLabels[invite.role as WorkspaceRole]} · expira em{" "}
+                    {new Date(invite.expires_at).toLocaleDateString("pt-BR")}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                onClick={() => setCancellingInviteId(invite.id)}
+              >
+                <X className="size-3.5 text-muted-foreground" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ── LISTA DE MEMBROS ── */}
       <div className="space-y-2">
         <h3 className="text-sm font-semibold">Membros ({data?.total ?? 0})</h3>
@@ -188,29 +238,14 @@ export function WorkspaceMembersTab({ workspaceId }: Props) {
               )}
 
               {isOwner && member.role !== "owner" && (
-                <AlertDialog>
-                  <AlertDialogTrigger>
-                    <Button variant="ghost" size="icon" className="size-8">
-                      <Trash2 className="size-3.5 text-muted-foreground" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Remover membro?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {member.name} perderá acesso a este workspace.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => removeMember.mutate(member.user_id)}
-                      >
-                        Remover
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  onClick={() => setRemovingMemberId(member.user_id)}
+                >
+                  <Trash2 className="size-3.5 text-muted-foreground" />
+                </Button>
               )}
             </div>
           </div>
@@ -254,6 +289,71 @@ export function WorkspaceMembersTab({ workspaceId }: Props) {
           </Pagination>
         )}
       </div>
+
+      {/* ── DIALOG REMOVER MEMBRO ── */}
+      <AlertDialog
+        open={removingMemberId !== null}
+        onOpenChange={(open) => {
+          if (!open) setRemovingMemberId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover membro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Este membro perderá acesso ao workspace.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (removingMemberId) {
+                  removeMember.mutate(removingMemberId, {
+                    onSuccess: () => setRemovingMemberId(null),
+                  });
+                }
+              }}
+              disabled={removeMember.isPending}
+            >
+              {removeMember.isPending ? "Removendo..." : "Remover"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── DIALOG CANCELAR CONVITE ── */}
+      <AlertDialog
+        open={cancellingInviteId !== null}
+        onOpenChange={(open) => {
+          if (!open) setCancellingInviteId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar convite?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O convite será cancelado permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <Button
+              onClick={() => {
+                if (cancellingInviteId) {
+                  cancelInvite.mutate(cancellingInviteId, {
+                    onSuccess: () => setCancellingInviteId(null),
+                  });
+                }
+              }}
+              disabled={cancelInvite.isPending}
+            >
+              {cancelInvite.isPending ? "Cancelando..." : "Cancelar convite"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

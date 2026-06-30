@@ -1,11 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { useTabsStore } from "@/store/tabsStore";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePendingInvites } from "@/hooks/useInvites";
 
 export function AppTopbar() {
   const navigate = useNavigate();
   const { tabs, activeTabId, closeTab, setActiveTab } = useTabsStore();
+  const { data: invites } = usePendingInvites();
+  const pendingCount = invites?.length ?? 0;
 
   function handleTabClick(id: number) {
     setActiveTab(id);
@@ -48,14 +51,30 @@ export function AppTopbar() {
         ))
       )}
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-7 ml-1 shrink-0"
-        onClick={() => navigate("/workspaces")}
-      >
-        <Plus className="size-4" />
-      </Button>
+      <div className="ml-auto flex items-center gap-1 shrink-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7 relative"
+          onClick={() => navigate("/invites")}
+        >
+          <Bell className="size-4" />
+          {pendingCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 size-4 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium leading-none">
+              {pendingCount > 9 ? "9+" : pendingCount}
+            </span>
+          )}
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7"
+          onClick={() => navigate("/workspaces")}
+        >
+          <Plus className="size-4" />
+        </Button>
+      </div>
     </div>
   );
 }

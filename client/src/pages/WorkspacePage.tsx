@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useWorkspace } from "@/hooks/useWorkspaces";
 import { BookOpen } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,22 +15,27 @@ function WorkspacePage() {
   const workspaceId = Number(id);
   const { openTab } = useTabsStore();
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "tasks";
+
   const { data: workspace, isLoading: loadingWorkspace } =
     useWorkspace(workspaceId);
 
-  // Abre a aba na topbar quando o workspace carrega
   useEffect(() => {
     if (workspace) {
       openTab({ id: workspace.id, name: workspace.name });
     }
   }, [workspace, openTab]);
 
+  function handleTabChange(value: string) {
+    setSearchParams({ tab: value });
+  }
+
   if (loadingWorkspace) return <WorkspacePageSkeleton />;
   if (!workspace) return <p>Workspace não encontrado.</p>;
 
   return (
     <div className="space-y-6">
-      {/* Cabeçalho do workspace */}
       <div className="flex items-center gap-3">
         <BookOpen className="size-6" />
         <div>
@@ -43,8 +48,7 @@ function WorkspacePage() {
         </div>
       </div>
 
-      {/* Abas: Tarefas | Metas | Hábitos | Membros */}
-      <Tabs defaultValue="tasks">
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="tasks">Tarefas</TabsTrigger>
           <TabsTrigger value="goals">Metas</TabsTrigger>

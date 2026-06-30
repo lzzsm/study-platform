@@ -13,6 +13,7 @@ const WorkspacesPage = lazy(() => import("./pages/WorkspacesPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
+const InvitesPage = lazy(() => import("./pages/InvitesPage"));
 
 // fallback minimalista enquanto a página carrega
 function PageLoader() {
@@ -99,6 +100,16 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <PublicProfilePage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/invites"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <InvitesPage />
               </AppLayout>
             </ProtectedRoute>
           }

@@ -9,10 +9,15 @@ import habitRouter from "./routes/habits";
 import analyticsRouter from "./routes/analytics";
 import userRouter from "./routes/users";
 import workspaceMembersRouter from "./routes/workspaceMembers";
+import workspaceInvitesRouter, {
+  workspaceInviteWorkspaceRouter,
+} from "./routes/workspaceInvites";
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "./errors/AppError";
 import pinoHttp from "pino-http";
 import { logger } from "./config/logger";
+import { createServer } from "http";
+import { initSocket } from "./config/socket";
 
 if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET não definido.");
 if (!process.env.DB_PASSWORD) throw new Error("DB_PASSWORD não definida.");
@@ -38,6 +43,8 @@ app.use("/workspaces/:workspaceId/habits", habitRouter);
 app.use("/analytics", analyticsRouter);
 app.use("/users", userRouter);
 app.use("/workspaces/:workspaceId/members", workspaceMembersRouter);
+app.use("/invites", workspaceInvitesRouter);
+app.use("/workspaces/:workspaceId/invite", workspaceInviteWorkspaceRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
@@ -49,6 +56,9 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ error: "Erro interno do servidor." });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+const httpServer = createServer(app);
+initSocket(httpServer);
+
+httpServer.listen(PORT, () => {
+  logger.info(`Server running on port ${PORT}`);
 });

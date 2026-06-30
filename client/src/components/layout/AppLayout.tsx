@@ -2,8 +2,11 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { AppTopbar } from "./AppTopbar";
+import { useSocket } from "@/hooks/useSocket";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
+  useSocket();
+  
   return (
     <SidebarProvider>
       <AppSidebar />

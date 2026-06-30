@@ -29,10 +29,11 @@ export function EditWorkspaceDialog({ workspace }: { workspace: Workspace }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger onClick={(e) => e.stopPropagation()}>
-        <Button variant="outline" size="sm">
-          Editar
-        </Button>
+      <DialogTrigger
+        onClick={(e) => e.stopPropagation()}
+        className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-8 px-3 py-1 cursor-pointer"
+      >
+        Editar
       </DialogTrigger>
       <DialogContent onClick={(e) => e.stopPropagation()}>
         <DialogHeader>

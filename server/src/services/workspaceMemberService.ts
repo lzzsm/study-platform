@@ -3,6 +3,7 @@ import { userRepository } from "../repositories/userRepository";
 import { workspaceRepository } from "../repositories/workspaceRepository";
 import { AppError } from "../errors/AppError";
 import { WorkspaceRole } from "../types/workspaceMember.types";
+import { getIO } from "../config/socket";
 
 async function inviteMember(
   workspace_id: number,
@@ -47,7 +48,6 @@ async function removeMember(
   requester_id: number,
   target_user_id: number,
 ) {
-  // só owner pode remover
   const requesterMembership = await workspaceMemberRepository.findMembership(
     workspace_id,
     requester_id,
@@ -56,7 +56,6 @@ async function removeMember(
     throw new AppError("Apenas o dono pode remover membros.", 403);
   }
 
-  // owner não pode ser removido
   const workspace = await workspaceRepository.findById(
     workspace_id,
     requester_id,
@@ -66,6 +65,14 @@ async function removeMember(
   }
 
   await workspaceMemberRepository.removeMember(workspace_id, target_user_id);
+
+  try {
+    getIO().to(`user:${target_user_id}`).emit("workspace:removed", {
+      workspace_id,
+    });
+  } catch {
+    // socket não inicializado em testes
+  }
 }
 
 async function updateRole(
