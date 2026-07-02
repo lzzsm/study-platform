@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { authService } from "../services/authService";
 import { userRepository } from "../repositories/userRepository";
+import { refreshTokenRepository } from "../repositories/refreshTokenRepository";
 import bcrypt from "bcrypt";
 
 vi.mock("../repositories/userRepository");
+vi.mock("../repositories/refreshTokenRepository");
 vi.mock("bcrypt");
 
 // Objeto compartilhado para evitar duplicação e facilitar manutenção
@@ -14,6 +16,15 @@ const mockUser = {
   password: "hashed",
   avatar_url: null,
   bio: null,
+  created_at: new Date(),
+  updated_at: new Date(),
+};
+
+const mockRefreshToken = {
+  id: 1,
+  user_id: 1,
+  token_hash: "hashed_refresh_token",
+  expires_at: new Date(),
   created_at: new Date(),
   updated_at: new Date(),
 };
@@ -33,14 +44,21 @@ describe("authService.register", () => {
     // Mock necessário para o bcrypt.hash executado no service de registro
     vi.mocked(bcrypt.hash as any).mockResolvedValue("hashed_password");
 
-    const token = await authService.register(
+    // Mock do refresh token salvo no banco
+    vi.mocked(refreshTokenRepository.create).mockResolvedValue(
+      mockRefreshToken,
+    );
+
+    const tokens = await authService.register(
       "Luiz",
       "luiz@email.com",
       "12345678",
     );
 
-    expect(token).toBeDefined();
-    expect(typeof token).toBe("string");
+    expect(tokens.accessToken).toBeDefined();
+    expect(tokens.refreshToken).toBeDefined();
+    expect(typeof tokens.accessToken).toBe("string");
+    expect(typeof tokens.refreshToken).toBe("string");
   });
 
   it("deve lançar AppError 409 quando o email já existe", async () => {
@@ -65,10 +83,17 @@ describe("authService.login", () => {
     // Simula que a comparação de senha retornou verdadeira (senha correta)
     vi.mocked(bcrypt.compare as any).mockResolvedValue(true);
 
-    const token = await authService.login("luiz@email.com", "12345678");
+    // Mock do refresh token salvo no banco
+    vi.mocked(refreshTokenRepository.create).mockResolvedValue(
+      mockRefreshToken,
+    );
 
-    expect(token).toBeDefined();
-    expect(typeof token).toBe("string");
+    const tokens = await authService.login("luiz@email.com", "12345678");
+
+    expect(tokens.accessToken).toBeDefined();
+    expect(tokens.refreshToken).toBeDefined();
+    expect(typeof tokens.accessToken).toBe("string");
+    expect(typeof tokens.refreshToken).toBe("string");
   });
 
   it("login com email inexistente → AppError 401", async () => {
