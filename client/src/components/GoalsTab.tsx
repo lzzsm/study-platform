@@ -11,6 +11,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { AiGoalSuggestionDialog } from "@/components/AiGoalSuggestionDialog";
 
 interface GoalsTabProps {
   workspaceId: number;
@@ -27,7 +28,10 @@ export function GoalsTab({ workspaceId }: GoalsTabProps) {
     <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Metas</h2>
-        <CreateGoalDialog workspaceId={workspaceId} />
+        <div className="flex gap-2">
+          <AiGoalSuggestionDialog workspaceId={workspaceId} />
+          <CreateGoalDialog workspaceId={workspaceId} />
+        </div>
       </div>
 
       {loadingGoals ? (

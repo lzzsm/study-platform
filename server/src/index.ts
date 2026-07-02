@@ -18,6 +18,7 @@ import pinoHttp from "pino-http";
 import { logger } from "./config/logger";
 import { createServer } from "http";
 import { initSocket } from "./config/socket";
+import aiRouter from "./routes/ai";
 
 if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET não definido.");
 if (!process.env.DB_PASSWORD) throw new Error("DB_PASSWORD não definida.");
@@ -45,6 +46,7 @@ app.use("/users", userRouter);
 app.use("/workspaces/:workspaceId/members", workspaceMembersRouter);
 app.use("/invites", workspaceInvitesRouter);
 app.use("/workspaces/:workspaceId/invite", workspaceInviteWorkspaceRouter);
+app.use("/ai", aiRouter);
 
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
